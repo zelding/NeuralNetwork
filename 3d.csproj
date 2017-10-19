@@ -82,6 +82,7 @@
     <Compile Include="Assets\Scripts\EightDirController.cs" />
     <Compile Include="Assets\Scripts\Entity.cs" />
     <Compile Include="Assets\Scripts\NeuralNetwork.cs" />
+    <Compile Include="Assets\Scripts\SimulationManager.cs" />
     <Compile Include="Assets\Scripts\ThirdPersonCameraController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

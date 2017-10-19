@@ -4,25 +4,29 @@
 /// 1. 8 dir movement
 /// 2. stop and face camera
 /// </summary>
-public class EightDirController : MonoBehaviour {
+public class EightDirController {
 
     public float velocity  = 5f;
     public float turnSpeed = 10f;
     public Camera myCamera;
+
+    private Entity entity;
 
     private Vector2 input;
     private float angle;
     private Quaternion targetRotation;
     private Transform cameraTransform;
 
-    private void Start()
+    public EightDirController(Entity entity, Camera camera)
     {
+        this.entity     = entity;
+        myCamera        = camera;
         cameraTransform = myCamera.transform;
     }
 
-    private void Update()
+    public void HandleInput(float x, float y)
     {
-        GetInput();
+        input = new Vector2(x, y);
 
         if( Mathf.Abs(input.x) < 1 && Mathf.Abs(input.y) < 1 )
         {
@@ -34,14 +38,6 @@ public class EightDirController : MonoBehaviour {
         Move();
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    private void GetInput()
-    {
-        input.x = Input.GetAxisRaw("Horizontal");
-        input.y = Input.GetAxisRaw("Vertical");
-    }
 
     /// <summary>
     /// Dir relative to the cameras rotation
@@ -59,8 +55,8 @@ public class EightDirController : MonoBehaviour {
     /// </summary>
     private void Rotate()
     {
-        targetRotation     = Quaternion.Euler(0, angle, 0);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+        targetRotation            = Quaternion.Euler(0, angle, 0);
+        entity.transform.rotation = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
     }
 
     /// <summary>
@@ -68,6 +64,6 @@ public class EightDirController : MonoBehaviour {
     /// </summary>
     private void Move()
     {
-        transform.position += transform.forward * velocity * Time.deltaTime;
+        entity.transform.position += entity.transform.forward * velocity * Time.deltaTime;
     }
 }

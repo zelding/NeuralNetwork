@@ -7,13 +7,16 @@ public class NeuralNetwork {
 
     public readonly float PHI = Mathf.Pow(5f,0.5f) * 0.5f + 0.5f;
 
+    [SerializeField]
     public int[]       layers;
+
+    [SerializeField]
     public float[][]   neurons;
     public float[][][] weights;
     public float[][][] biases;
 
     public string lineage = "";
-    public uint gen = 0;
+    public uint gen       = 0;
 
     /// <summary>
     /// Number of neurons in a given layer
@@ -33,7 +36,7 @@ public class NeuralNetwork {
 
         InitNeurons();
         weights = InitMatrix();
-        biases  = InitMatrix(-PHI / 2f, PHI / 2f);
+        biases  = InitMatrix(0, 0);
     }
 
     /// <summary>
