@@ -6,14 +6,12 @@ public class Entity : MonoBehaviour {
 
     public readonly string Name;
 
-    [SerializeField]
     public NeuralNetwork Brain;
+    public Genes Genes;
     public EightDirController Legs;
     public Camera myCamera;
 
-    [SerializeField]
     public float[] Output { get; private set; }
-
     public float[] Input { private get; set; }
 
     public string NeuStr;
@@ -24,10 +22,26 @@ public class Entity : MonoBehaviour {
     private float verticalVelocity;
     private CharacterController controller;
 
-    [SerializeField]
     private float age      = 0f;
-    [SerializeField]
     private float energy   = 100f;
+
+    public Entity()
+    {
+        Brain      = new NeuralNetwork(new int[4] { 4, 64, 64, 4 });
+        Genes      = new Genes();
+        Legs       = new EightDirController(this, myCamera);
+        controller = GetComponent<CharacterController>();
+
+        NeuStr     = Brain.lineage;
+    }
+
+    public Entity(Entity entity)
+    {
+        Brain      = new NeuralNetwork(entity.Brain);
+        Genes      = new Genes(entity.Genes);
+        Legs       = new EightDirController(entity, myCamera); ;
+        controller = entity.GetComponent<CharacterController>();
+    }
 
     public bool isAlive()
     {
@@ -37,11 +51,7 @@ public class Entity : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        Brain      = new NeuralNetwork(new int[4] { 4, 6, 6, 4 });
-        Legs       = new EightDirController(this, myCamera);
-        controller = GetComponent<CharacterController>();
-
-        NeuStr = Brain.lineage;
+        Brain.Mutate();
     }
 	
 	// Update is called once per frame

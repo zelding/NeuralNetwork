@@ -22,6 +22,9 @@ public class EightDirController {
         this.entity     = entity;
         myCamera        = camera;
         cameraTransform = myCamera.transform;
+
+        velocity  = entity.Genes.Legs.speed;
+        turnSpeed = entity.Genes.Legs.turnSpeed;
     }
 
     public void HandleInput(float x, float y)

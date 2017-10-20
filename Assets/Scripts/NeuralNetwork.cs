@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
+[System.Serializable]
 public class NeuralNetwork {
 
     public readonly float PHI = Mathf.Pow(5f,0.5f) * 0.5f + 0.5f;
@@ -101,7 +100,7 @@ public class NeuralNetwork {
                 //set weights to random
                 for (int k = 0; k < neuronsInPrevLayer; k++)
                 {
-                    neuronValues[k] = UnityEngine.Random.Range(min, max);
+                    neuronValues[k] = Random.Range(min, max);
                 }
 
                 layerValueList.Add(neuronValues);

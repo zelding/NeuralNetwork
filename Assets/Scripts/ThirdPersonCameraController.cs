@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ThirdPersonCameraController : MonoBehaviour
 {
-    public Transform target;
+    public Transform Target { get; set; }
 
     public Vector3 offsetPos;
 
@@ -39,7 +39,7 @@ public class ThirdPersonCameraController : MonoBehaviour
 
     private void MoveWithTarget()
     {
-        targetPos          = target.position + offsetPos;
+        targetPos          = Target.position + offsetPos;
         transform.position = Vector3.Lerp(transform.position, targetPos, moveSpeed * Time.deltaTime);
     }
 
@@ -48,7 +48,7 @@ public class ThirdPersonCameraController : MonoBehaviour
     /// </summary>
     private void LookAtTarget()
     {
-        targetRotation     = Quaternion.LookRotation(target.position - transform.position);
+        targetRotation     = Quaternion.LookRotation(Target.position - transform.position);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
     }
 
