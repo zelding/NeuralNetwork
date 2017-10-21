@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ThirdPersonCameraController : MonoBehaviour
 {
-    public Transform Target { get; set; }
+    public Transform Target;
 
     public Vector3 offsetPos;
 
@@ -14,6 +14,11 @@ public class ThirdPersonCameraController : MonoBehaviour
     private Quaternion targetRotation;
     private Vector3 targetPos;
     private bool smoothRotating = false;
+
+    private void Start()
+    {
+        this.enabled = false;
+    }
 
     // Update is called once per frame
     private void Update ()

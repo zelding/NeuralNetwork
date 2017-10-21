@@ -41,6 +41,8 @@ public class Entity : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
+        myCamera = Instantiate(myCamera, new Vector3(0, 0, 0), Quaternion.identity);
+
         Brain      = new NeuralNetwork(new int[4] { 4, 64, 64, 4 });
         Genes      = new Genes();
         Legs       = new EightDirController(this, myCamera);
@@ -72,8 +74,6 @@ public class Entity : MonoBehaviour {
             }
 
             Output = Brain.FeedForward(Input);
-
-            
 
             age += Time.deltaTime;
             energy -= Time.deltaTime;

@@ -21,7 +21,9 @@ public class SimulationManager : MonoBehaviour
 
 		for(int i = 0; i < startingFishes; i++)
         {
-            Entities.Add( gameObject.AddComponent<Entity>() );
+            Vector3 startPosition = new Vector3(Random.Range(-10f, 10f), 0.85f, Random.Range(-10f, 10f));
+            GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity);
+            Entities.Add( fish.GetComponent<Entity>() );
         }
 	}
 	
