@@ -21,7 +21,7 @@ public class SimulationManager : MonoBehaviour
 
 		for(int i = 0; i < startingFishes; i++)
         {
-            Entities.Add( new Entity() );
+            Entities.Add( gameObject.AddComponent<Entity>() );
         }
 	}
 	

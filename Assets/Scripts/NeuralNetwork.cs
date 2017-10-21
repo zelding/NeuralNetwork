@@ -55,8 +55,8 @@ public class NeuralNetwork {
         }
 
         InitNeurons();
-        weights = InitMatrix();
-        biases  = InitMatrix(-PHI/2f, PHI/2f);
+        //weights = InitMatrix();
+        //biases  = InitMatrix(-PHI/2f, PHI/2f);
         weights = CopyMatrix(copyME.weights);
         biases  = CopyMatrix(copyME.biases);
     }
@@ -152,7 +152,7 @@ public class NeuralNetwork {
     {
         if ( inputs.Length != neurons[0].Length )
         {
-            throw new ArgumentException("Lengths mismatch");
+            throw new System.ArgumentException("Lengths mismatch");
         }
 
         for (int i = 0; i < inputs.Length; i++)

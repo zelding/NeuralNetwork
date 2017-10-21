@@ -37,8 +37,7 @@ public class EightDirController {
         }
 
         CalculateDirection();
-        Rotate();
-        Move();
+        
     }
 
 
@@ -68,5 +67,11 @@ public class EightDirController {
     private void Move()
     {
         entity.transform.position += entity.transform.forward * velocity * Time.deltaTime;
+    }
+
+    private void LateUpdate()
+    {
+        Rotate();
+        Move();
     }
 }

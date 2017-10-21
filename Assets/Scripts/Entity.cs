@@ -25,17 +25,7 @@ public class Entity : MonoBehaviour {
     private float age      = 0f;
     private float energy   = 100f;
 
-    public Entity()
-    {
-        Brain      = new NeuralNetwork(new int[4] { 4, 64, 64, 4 });
-        Genes      = new Genes();
-        Legs       = new EightDirController(this, myCamera);
-        controller = GetComponent<CharacterController>();
-
-        NeuStr     = Brain.lineage;
-    }
-
-    public Entity(Entity entity)
+    public void InheritFrom(Entity entity)
     {
         Brain      = new NeuralNetwork(entity.Brain);
         Genes      = new Genes(entity.Genes);
@@ -51,7 +41,12 @@ public class Entity : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        Brain.Mutate();
+        Brain      = new NeuralNetwork(new int[4] { 4, 64, 64, 4 });
+        Genes      = new Genes();
+        Legs       = new EightDirController(this, myCamera);
+        controller = GetComponent<CharacterController>();
+
+        NeuStr = Brain.lineage;
     }
 	
 	// Update is called once per frame
@@ -78,16 +73,21 @@ public class Entity : MonoBehaviour {
 
             Output = Brain.FeedForward(Input);
 
-            Vector3 moveVector = new Vector3(0, verticalVelocity, 0);
-            controller.Move(moveVector * Time.deltaTime);
-
-            Legs.HandleInput(Output[0] * speed, Output[1] * speed);
+            
 
             age += Time.deltaTime;
             energy -= Time.deltaTime;
         }
 
         Debug.Log(Output[0] + "," + Output[1]);
+    }
+
+    private void LateUpdate()
+    {
+        Vector3 moveVector = new Vector3(0, verticalVelocity, 0);
+        controller.Move(moveVector * Time.deltaTime);
+
+        Legs.HandleInput(Output[0] * speed, Output[1] * speed);
     }
 
     private void OnDrawGizmos()

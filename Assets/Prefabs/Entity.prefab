@@ -19,6 +19,9 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4949960672350486}
+  - component: {fileID: 65768582608937224}
+  - component: {fileID: 143221514608938650}
+  - component: {fileID: 114075676606003206}
   m_Layer: 0
   m_Name: Entity
   m_TagString: Untagged
@@ -35,11 +38,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4918968296557138}
   - component: {fileID: 33699915157236126}
-  - component: {fileID: 65952224422358210}
   - component: {fileID: 23620071861109136}
-  - component: {fileID: 143656614162662812}
-  - component: {fileID: 114030572842315482}
-  - component: {fileID: 114657742934619884}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -113,24 +112,24 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1785706757603294}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!65 &65952224422358210
+--- !u!65 &65768582608937224
 BoxCollider:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1785706757603294}
+  m_GameObject: {fileID: 1258030693123640}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &114030572842315482
+--- !u!114 &114075676606003206
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1785706757603294}
+  m_GameObject: {fileID: 1258030693123640}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 995681a093028ae428f595da1ee85e7a, type: 3}
@@ -140,36 +139,20 @@ MonoBehaviour:
     layers: 
     lineage: 
     gen: 0
-  myCamera: {fileID: 0}
+  myCamera: {fileID: 20789346034598884, guid: 9419bb72144c1dd4b86d5fdbf80d76d1, type: 2}
   NeuStr: 
-  speed: 1
-  age: 0
-  energy: 100
---- !u!114 &114657742934619884
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1785706757603294}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aecc2f0393280974b9e2feef656cb3a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cameras:
-  - {fileID: 0}
-  - {fileID: 0}
---- !u!143 &143656614162662812
+  speed: 18.334
+--- !u!143 &143221514608938650
 CharacterController:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1785706757603294}
+  m_GameObject: {fileID: 1258030693123640}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Height: 1
+  m_Height: 2
   m_Radius: 0.5
   m_SlopeLimit: 45
   m_StepOffset: 0.3
