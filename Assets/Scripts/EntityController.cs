@@ -9,7 +9,6 @@ public class EntityController : MonoBehaviour {
     public NeuralNetwork Brain;
     public Genes Genes;
     public EightDirController Legs;
-    //public Camera myCamera;
 
     public float[] Output { get; private set; }
     public float[] Input { private get; set; }
@@ -29,7 +28,7 @@ public class EntityController : MonoBehaviour {
     {
         Brain      = new NeuralNetwork(entity.Brain);
         Genes      = new Genes(entity.Genes);
-        Legs       = new EightDirController(entity/*, myCamera*/);
+        Legs       = new EightDirController(entity);
         controller = entity.GetComponent<CharacterController>();
     }
 
@@ -41,14 +40,9 @@ public class EntityController : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        /*if (myCamera == null)
-        {
-            myCamera = Instantiate(myCamera, new Vector3(0, 0, 0), Quaternion.identity);
-        }*/
-
-        Brain      = new NeuralNetwork(new int[4] { 4, 64, 64, 4 });
         Genes      = new Genes();
-        Legs       = new EightDirController(this/*, myCamera*/);
+        Brain      = new NeuralNetwork(new int[4] { 4, 64, 64, 4 });
+        Legs       = new EightDirController(this);
         controller = GetComponent<CharacterController>();
 
         NeuStr = Brain.lineage;
@@ -81,8 +75,6 @@ public class EntityController : MonoBehaviour {
             age += Time.deltaTime;
             energy -= Time.deltaTime;
         }
-
-        //Debug.Log(Output[0] + "," + Output[1]);
     }
 
     private void LateUpdate()
@@ -90,7 +82,7 @@ public class EntityController : MonoBehaviour {
         Vector3 moveVector = new Vector3(0, verticalVelocity, 0);
         controller.Move(moveVector * Time.deltaTime);
 
-        Legs.HandleInput(Output[0] * speed, Output[1] * speed);
+        Legs.HandleInput(Output[0], Output[1]);
     }
 
     private void OnDrawGizmos()

@@ -27,8 +27,8 @@ public class ThirdPersonCameraController : MonoBehaviour
     // Update is called once per frame
     private void Update ()
     {
-        //if (enabled)
-        //{
+        if (enabled)
+        {
             MoveWithTarget();
             LookAtTarget();
 
@@ -43,7 +43,7 @@ public class ThirdPersonCameraController : MonoBehaviour
             {
                 StartCoroutine("RotateAroundTarget", -45);
             }
-        //}
+        }
     }
 
     private void MoveWithTarget()
@@ -75,7 +75,7 @@ public class ThirdPersonCameraController : MonoBehaviour
 
         smoothRotating = true;
 
-        while(distance > 0.02f)
+        while(distance > 0.01f)
         {
             offsetPos = Vector3.SmoothDamp(offsetPos, targetOffsetPos, ref vel, smoothSpeed);
             distance  = Vector3.Distance(offsetPos, targetOffsetPos);

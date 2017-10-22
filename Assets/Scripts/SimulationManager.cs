@@ -5,6 +5,7 @@ using UnityEngine;
 public class SimulationManager : MonoBehaviour
 {
     public EntityController SelectedEntity { get; private set; }
+    public EntityController HoveredEntity;
 
     public Camera TopDownCamera;
     public Camera FollowingCamera;
@@ -16,6 +17,7 @@ public class SimulationManager : MonoBehaviour
 
     private ThirdPersonCameraController thirdPersonCameraController;
 
+    private float spawnBoundary = 430f;
     private bool isRunning = false;
     private int cycle      = 0;
 
@@ -35,8 +37,19 @@ public class SimulationManager : MonoBehaviour
 
 		for(int i = 0; i < startingFishes; i++)
         {
-            Vector3 startPosition = new Vector3(Random.Range(-100f, 100f), 0.85f, Random.Range(-100f, 100f));
+            Vector3 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 0.85f, Random.Range(-spawnBoundary, spawnBoundary));
+
+            do {
+                startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 0.85f, Random.Range(-spawnBoundary, spawnBoundary));
+                //startRotation = new Quaternion(0, Random.Range(-90f, 90f), 0, 0);
+            } while (IsCloseToOthers(startPosition));
+
             GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity);
+
+            var euler = fish.transform.eulerAngles;
+            euler.y = Random.Range(-180f, 180f);
+            fish.transform.eulerAngles = euler;
+
             Entities.Add( fish.GetComponent<EntityController>() );
         }
 	}
@@ -60,24 +73,30 @@ public class SimulationManager : MonoBehaviour
 
     private void DetectMouseEvents()
     {
-        if( Input.GetMouseButtonDown(0) )
+        Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit))
         {
-            Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            GameObject HoveredGameObject = hit.transform.root.gameObject;
 
-            if( Physics.Raycast(ray, out hit) )
+            if (HoveredGameObject.tag == "Fish")
             {
-                GameObject ClickedGameObject = hit.transform.root.gameObject;
+                EntityController foundFish = HoveredGameObject.GetComponent<EntityController>();
 
-                Debug.Log("Hit something");
-
-                if (ClickedGameObject.tag == "Fish" )
+                if (Input.GetMouseButtonDown(0))
                 {
-                    EntityController clickedController = ClickedGameObject.GetComponent<EntityController>();
-                    Debug.Log("Found: " + clickedController.name);
-                    SelectFish(clickedController);
+                    SelectFish(foundFish);
+                }
+                else
+                {
+                    HoverSelectable(foundFish);
                 }
             }
+        }
+        else
+        {
+            ClearHover();
         }
     }
 
@@ -85,18 +104,18 @@ public class SimulationManager : MonoBehaviour
     {
         if ( Input.GetKeyDown(KeyCode.F1) )
         {
-            TopDownCamera.enabled = true;
-            FollowingCamera.enabled = false;
-            thirdPersonCameraController.enabled = false;
-            currentCamera = TopDownCamera;
+            ActivateTopDownCamera();
         }
 
         if ( Input.GetKeyDown(KeyCode.F2) )
         {
-            TopDownCamera.enabled = false;
-            FollowingCamera.enabled = true;
-            thirdPersonCameraController.enabled = true;
-            currentCamera = FollowingCamera;
+            ActivateFollowerCamera();
+        }
+
+        if ( Input.GetKeyDown(KeyCode.Escape) )
+        {
+            ActivateTopDownCamera();
+            ClearSelection();
         }
     }
 
@@ -107,9 +126,133 @@ public class SimulationManager : MonoBehaviour
             return;
         }
 
+        if ( SelectedEntity != null )
+        {
+            ClearSelection(true);
+        }
+
         SelectedEntity = obj;
         thirdPersonCameraController.Target      = SelectedEntity.transform;
         thirdPersonCameraController.turnSpeed   = SelectedEntity.Genes.Legs.turnSpeed;
         thirdPersonCameraController.smoothSpeed = SelectedEntity.Genes.Legs.smoothSpeed;
+
+        Renderer[] childRenderers = SelectedEntity.GetComponentsInChildren<Renderer>();
+
+        foreach(Renderer r in childRenderers)
+        {
+            Material m = r.material;
+            m.color = new Color(1, 0, 0, 1);
+            r.material = m;
+        }
     }
+
+    private void HoverSelectable(EntityController obj)
+    {
+        if (obj == HoveredEntity || obj == SelectedEntity)
+        {
+            return;
+        }
+
+        if (obj == null)
+        {
+            ClearHover();
+        }
+        else
+        {
+            Renderer[] r = obj.GetComponentsInChildren<Renderer>();
+
+            foreach (Renderer childRenderer in r)
+            {
+                Material m = childRenderer.material;
+                m.color = Color.green;
+                childRenderer.material = m;
+            }
+
+            HoveredEntity = obj;
+        }
+    }
+
+    /// <summary>
+    /// TODO: handle if the new and the old overlap
+    /// </summary>
+    private void ClearSelection(bool onlyResetColors = false)
+    {
+        if ( SelectedEntity == null )
+        {
+            return;
+        }
+
+        if (!onlyResetColors)
+        {
+            thirdPersonCameraController.enabled = false;
+            thirdPersonCameraController.Target = null;
+        }
+
+        Renderer[] childRenderers = SelectedEntity.GetComponentsInChildren<Renderer>();
+
+        foreach (Renderer r in childRenderers)
+        {
+            Material m = r.material;
+            m.color = Color.blue;
+            r.material = m;
+        }
+
+        SelectedEntity = null;
+    }
+
+    private void ClearHover()
+    {
+        if ( HoveredEntity == null || HoveredEntity == SelectedEntity )
+        {
+            return;
+        }
+
+        Renderer[] r = HoveredEntity.GetComponentsInChildren<Renderer>();
+
+        foreach (Renderer childRenderer in r)
+        {
+            Material m = childRenderer.material;
+            m.color = Color.blue;
+            childRenderer.material = m;
+        }
+
+        HoveredEntity = null;
+    }
+
+    private bool IsCloseToOthers(Vector3 pos)
+    {
+        if (Entities.Count == 0) return false;
+
+        foreach(EntityController entity in Entities)
+        {
+            float min_x = entity.transform.position.x;
+            float max_x = entity.transform.position.x + entity.transform.localScale.x;
+            float min_z = entity.transform.position.z;
+            float max_z = entity.transform.position.z + entity.transform.localScale.z;
+
+            if ( pos.x > min_x && pos.x < max_x && pos.z > min_z && pos.z < max_z )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void ActivateTopDownCamera()
+    {
+        TopDownCamera.enabled = true;
+        FollowingCamera.enabled = false;
+        thirdPersonCameraController.enabled = false;
+        currentCamera = TopDownCamera;
+    }
+
+    private void ActivateFollowerCamera()
+    {
+        TopDownCamera.enabled = false;
+        FollowingCamera.enabled = true;
+        thirdPersonCameraController.enabled = true;
+        currentCamera = FollowingCamera;
+    }
+
 }

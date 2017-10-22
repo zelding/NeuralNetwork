@@ -20,8 +20,6 @@ public class EightDirController {
     public EightDirController(EntityController entity, Camera camera = null)
     {
         this.entity     = entity;
-        //myCamera        = camera;
-        //cameraTransform = myCamera.transform;
 
         velocity  = entity.Genes.Legs.speed;
         turnSpeed = entity.Genes.Legs.turnSpeed;
@@ -47,7 +45,7 @@ public class EightDirController {
     {
         angle  = Mathf.Atan2(input.x, input.y);
         angle *= Mathf.Rad2Deg; //convert to degrees
-        //angle += cameraTransform.eulerAngles.y;
+        angle += entity.transform.rotation.eulerAngles.y;
     }
 
     /// <summary>
