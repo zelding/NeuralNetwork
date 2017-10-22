@@ -4,6 +4,7 @@ using UnityEngine;
 public class ThirdPersonCameraController : MonoBehaviour
 {
     public Transform Target;
+    public Camera Followingcamera;
 
     public Vector3 offsetPos;
 
@@ -17,14 +18,17 @@ public class ThirdPersonCameraController : MonoBehaviour
 
     private void Start()
     {
-        this.enabled = false;
+        if ( Target != null )
+        {
+            LookAtTarget();
+        }
     }
 
     // Update is called once per frame
     private void Update ()
     {
-        if (isActiveAndEnabled)
-        {
+        //if (enabled)
+        //{
             MoveWithTarget();
             LookAtTarget();
 
@@ -39,13 +43,16 @@ public class ThirdPersonCameraController : MonoBehaviour
             {
                 StartCoroutine("RotateAroundTarget", -45);
             }
-        }
+        //}
     }
 
     private void MoveWithTarget()
     {
-        targetPos          = Target.position + offsetPos;
-        transform.position = Vector3.Lerp(transform.position, targetPos, moveSpeed * Time.deltaTime);
+        if (Target != null)
+        {
+            targetPos = Target.position + offsetPos;
+            Followingcamera.transform.position = Vector3.Lerp(Followingcamera.transform.position, targetPos, moveSpeed * Time.deltaTime);
+        }
     }
 
     /// <summary>
@@ -53,8 +60,11 @@ public class ThirdPersonCameraController : MonoBehaviour
     /// </summary>
     private void LookAtTarget()
     {
-        targetRotation     = Quaternion.LookRotation(Target.position - transform.position);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+        if (Target != null)
+        {
+            targetRotation = Quaternion.LookRotation(Target.position - Followingcamera.transform.position);
+            Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+        }
     }
 
     private IEnumerator RotateAroundTarget(float angle)

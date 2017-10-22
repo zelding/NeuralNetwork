@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Entity : MonoBehaviour {
+public class EntityController : MonoBehaviour {
 
     public readonly string Name;
 
     public NeuralNetwork Brain;
     public Genes Genes;
     public EightDirController Legs;
-    public Camera myCamera;
+    //public Camera myCamera;
 
     public float[] Output { get; private set; }
     public float[] Input { private get; set; }
@@ -25,11 +25,11 @@ public class Entity : MonoBehaviour {
     private float age      = 0f;
     private float energy   = 100f;
 
-    public void InheritFrom(Entity entity)
+    public void InheritFrom(EntityController entity)
     {
         Brain      = new NeuralNetwork(entity.Brain);
         Genes      = new Genes(entity.Genes);
-        Legs       = new EightDirController(entity, myCamera); ;
+        Legs       = new EightDirController(entity/*, myCamera*/);
         controller = entity.GetComponent<CharacterController>();
     }
 
@@ -41,11 +41,14 @@ public class Entity : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        myCamera = Instantiate(myCamera, new Vector3(0, 0, 0), Quaternion.identity);
+        /*if (myCamera == null)
+        {
+            myCamera = Instantiate(myCamera, new Vector3(0, 0, 0), Quaternion.identity);
+        }*/
 
         Brain      = new NeuralNetwork(new int[4] { 4, 64, 64, 4 });
         Genes      = new Genes();
-        Legs       = new EightDirController(this, myCamera);
+        Legs       = new EightDirController(this/*, myCamera*/);
         controller = GetComponent<CharacterController>();
 
         NeuStr = Brain.lineage;
@@ -79,7 +82,7 @@ public class Entity : MonoBehaviour {
             energy -= Time.deltaTime;
         }
 
-        Debug.Log(Output[0] + "," + Output[1]);
+        //Debug.Log(Output[0] + "," + Output[1]);
     }
 
     private void LateUpdate()
@@ -92,7 +95,7 @@ public class Entity : MonoBehaviour {
 
     private void OnDrawGizmos()
     {
-        float distance = 1.00f;
+        float distance = 5.00f;
 
         Gizmos.DrawRay(transform.position, transform.forward * (distance + transform.localScale.z));
     }

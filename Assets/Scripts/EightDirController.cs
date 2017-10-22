@@ -8,20 +8,20 @@ public class EightDirController {
 
     public float velocity  = 5f;
     public float turnSpeed = 10f;
-    public Camera myCamera;
+    //public Camera myCamera;
 
-    private Entity entity;
+    private EntityController entity;
 
     private Vector2 input;
     private float angle;
     private Quaternion targetRotation;
     private Transform cameraTransform;
 
-    public EightDirController(Entity entity, Camera camera)
+    public EightDirController(EntityController entity, Camera camera = null)
     {
         this.entity     = entity;
-        myCamera        = camera;
-        cameraTransform = myCamera.transform;
+        //myCamera        = camera;
+        //cameraTransform = myCamera.transform;
 
         velocity  = entity.Genes.Legs.speed;
         turnSpeed = entity.Genes.Legs.turnSpeed;
@@ -31,13 +31,12 @@ public class EightDirController {
     {
         input = new Vector2(x, y);
 
-        if( Mathf.Abs(input.x) < 1 && Mathf.Abs(input.y) < 1 )
+        if( Mathf.Abs(input.x) < 0.85f && Mathf.Abs(input.y) < 0.85f )
         {
             return;
         }
 
         CalculateDirection();
-        
     }
 
 
@@ -48,8 +47,7 @@ public class EightDirController {
     {
         angle  = Mathf.Atan2(input.x, input.y);
         angle *= Mathf.Rad2Deg; //convert to degrees
-        angle += cameraTransform.eulerAngles.y;
-
+        //angle += cameraTransform.eulerAngles.y;
     }
 
     /// <summary>
