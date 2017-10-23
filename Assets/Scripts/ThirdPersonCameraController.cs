@@ -44,6 +44,10 @@ public class ThirdPersonCameraController : MonoBehaviour
                 StartCoroutine("RotateAroundTarget", -45);
             }
         }
+        else
+        {
+            smoothRotating = false;
+        }
     }
 
     private void MoveWithTarget()

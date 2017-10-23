@@ -7,19 +7,20 @@
 public class EightDirController {
 
     public float velocity  = 5f;
-    public float turnSpeed = 10f;
+    public float turnSpeed = 3f;
     //public Camera myCamera;
 
     private EntityController entity;
+    private Rigidbody body;
 
     private Vector2 input;
     private float angle;
     private Quaternion targetRotation;
-    private Transform cameraTransform;
 
     public EightDirController(EntityController entity, Camera camera = null)
     {
         this.entity     = entity;
+        body = entity.GetComponent<Rigidbody>();
 
         velocity  = entity.Genes.Legs.speed;
         turnSpeed = entity.Genes.Legs.turnSpeed;
@@ -35,6 +36,8 @@ public class EightDirController {
         }
 
         CalculateDirection();
+        Rotate();
+        Move();
     }
 
 
@@ -54,7 +57,10 @@ public class EightDirController {
     private void Rotate()
     {
         targetRotation            = Quaternion.Euler(0, angle, 0);
-        entity.transform.rotation = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+        Quaternion rotationVector = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+        body.AddTorque(rotationVector.eulerAngles, ForceMode.Impulse);
+
+        entity.UseEnergy(turnSpeed / 10f);
     }
 
     /// <summary>
@@ -62,12 +68,9 @@ public class EightDirController {
     /// </summary>
     private void Move()
     {
-        entity.transform.position += entity.transform.forward * velocity * Time.deltaTime;
-    }
+        //entity.transform.position += entity.transform.forward * velocity * Time.deltaTime;
+        body.AddForce(entity.transform.forward * velocity, ForceMode.Impulse);
 
-    private void LateUpdate()
-    {
-        Rotate();
-        Move();
+        entity.UseEnergy(velocity / 10f);
     }
 }
