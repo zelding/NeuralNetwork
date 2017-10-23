@@ -3,7 +3,8 @@ using UnityEngine;
 
 public class ThirdPersonCameraController : MonoBehaviour
 {
-    public Transform Target { get; set; }
+    public Transform Target;
+    public Camera Followingcamera;
 
     public Vector3 offsetPos;
 
@@ -15,10 +16,18 @@ public class ThirdPersonCameraController : MonoBehaviour
     private Vector3 targetPos;
     private bool smoothRotating = false;
 
+    private void Start()
+    {
+        if ( Target != null )
+        {
+            LookAtTarget();
+        }
+    }
+
     // Update is called once per frame
     private void Update ()
     {
-        if (isActiveAndEnabled)
+        if (enabled)
         {
             MoveWithTarget();
             LookAtTarget();
@@ -35,12 +44,19 @@ public class ThirdPersonCameraController : MonoBehaviour
                 StartCoroutine("RotateAroundTarget", -45);
             }
         }
+        else
+        {
+            smoothRotating = false;
+        }
     }
 
     private void MoveWithTarget()
     {
-        targetPos          = Target.position + offsetPos;
-        transform.position = Vector3.Lerp(transform.position, targetPos, moveSpeed * Time.deltaTime);
+        if (Target != null)
+        {
+            targetPos = Target.position + offsetPos;
+            Followingcamera.transform.position = Vector3.Lerp(Followingcamera.transform.position, targetPos, moveSpeed * Time.deltaTime);
+        }
     }
 
     /// <summary>
@@ -48,8 +64,11 @@ public class ThirdPersonCameraController : MonoBehaviour
     /// </summary>
     private void LookAtTarget()
     {
-        targetRotation     = Quaternion.LookRotation(Target.position - transform.position);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+        if (Target != null)
+        {
+            targetRotation = Quaternion.LookRotation(Target.position - Followingcamera.transform.position);
+            Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+        }
     }
 
     private IEnumerator RotateAroundTarget(float angle)
@@ -60,7 +79,7 @@ public class ThirdPersonCameraController : MonoBehaviour
 
         smoothRotating = true;
 
-        while(distance > 0.02f)
+        while(distance > 0.01f)
         {
             offsetPos = Vector3.SmoothDamp(offsetPos, targetOffsetPos, ref vel, smoothSpeed);
             distance  = Vector3.Distance(offsetPos, targetOffsetPos);
