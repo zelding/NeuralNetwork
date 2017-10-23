@@ -3,17 +3,59 @@ using UnityEngine;
 
 public class Genes
 {
-    public class Movement
+    public abstract class AMutateable
     {
+        abstract internal void Mutate();
+
+        protected float MutateValue(float value, float min = -0.5f, float max = 0.5f)
+        {
+            float randomNumber = Random.Range(0f, 1000f);
+
+            if (randomNumber <= 2f)
+            {
+                value *= -1f;
+            }
+            else if (randomNumber <= 4f)
+            {
+                value = Random.Range(min, max);
+            }
+            else if (randomNumber <= 6f)
+            {
+                float factor = Random.Range(0f, 1f) + 1f;
+
+                value *= factor;
+            }
+            else if (randomNumber <= 8f)
+            {
+                float factor = Random.Range(0f, 1f);
+
+                value *= factor;
+            }
+
+            return value;
+        }
+    }
+
+    public class Movement : AMutateable
+    {
+        public const float minSpeed = 5f;
+        public const float maxSpeed = 15f;
+
+        public const float minTurnSpeed = 5f;
+        public const float maxTurnSpeed = 20f;
+
+        public const float minSmoothSpeed = 0.5f;
+        public const float maxSmoothSpeed = 2f;
+
         internal float speed;
         internal float turnSpeed;
         internal float smoothSpeed;
 
         internal Movement()
         {
-            speed       = Random.Range(5f, 15f);
-            turnSpeed   = Random.Range(5f, 20f);
-            smoothSpeed = Random.Range(0.5f, 2f);
+            speed       = Random.Range(minSpeed, maxSpeed);
+            turnSpeed   = Random.Range(minTurnSpeed, maxTurnSpeed);
+            smoothSpeed = Random.Range(minSmoothSpeed, maxSmoothSpeed);
         }
 
         internal Movement(Movement movement)
@@ -22,18 +64,72 @@ public class Genes
             turnSpeed   = movement.turnSpeed;
             smoothSpeed = movement.smoothSpeed;
         }
+
+        internal override void Mutate()
+        {
+            speed = MutateValue(speed, minSpeed, maxSpeed);
+            turnSpeed = MutateValue(turnSpeed, minTurnSpeed, maxTurnSpeed);
+            smoothSpeed = MutateValue(smoothSpeed, minSmoothSpeed, maxSmoothSpeed);
+        }
+    }
+
+    public class Sight : AMutateable
+    {
+        public const float minRange = 30f;
+        public const float maxRange = 80f;
+
+        public const float minAngle = 30f;
+        public const float maxAngle = 120f;
+
+        public const float minResolution = 1f;
+        public const float maxResolution = 5f;
+
+        internal float range;
+        internal float angle;
+        internal float resolution;
+
+        internal Sight()
+        {
+            range = Random.Range(minRange, maxRange);
+            angle = Random.Range(minAngle, maxAngle);
+            resolution = Random.Range(minResolution, maxResolution);
+        }
+
+        internal Sight(Sight sight)
+        {
+            range = sight.range;
+            angle = sight.angle;
+            resolution = sight.resolution;
+        }
+
+        internal override void Mutate()
+        {
+            range = MutateValue(range, minRange, maxRange);
+            angle = MutateValue(angle, minAngle, maxAngle);
+            resolution = MutateValue(resolution, minResolution, maxResolution);
+        }
     }
 
     public Movement Legs { get; internal set; }
+    public Sight Eyes { get; internal set; }
 
     public Genes()
     {
         Legs = new Movement();
+        Eyes = new Sight();
     }
 
     public Genes(Genes genes)
     {
         Legs = new Movement(genes.Legs);
+        Eyes = new Sight(genes.Eyes);
+        Mutate();
+    }
+
+    protected void Mutate()
+    {
+        Legs.Mutate();
+        Eyes.Mutate();
     }
 }
 

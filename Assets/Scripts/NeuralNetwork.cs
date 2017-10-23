@@ -35,7 +35,7 @@ public class NeuralNetwork {
 
         InitNeurons();
         weights = InitMatrix();
-        biases  = InitMatrix(0, 0);
+        biases  = InitMatrix(-0.34f, 0.34f);
     }
 
     /// <summary>
@@ -191,7 +191,7 @@ public class NeuralNetwork {
                 {
                     float weight = weights[i][j][k];
 
-                    float randomNumber = UnityEngine.Random.Range(0f, 1000f);
+                    float randomNumber = Random.Range(0f, 1000f);
 
                     if (randomNumber <= 2f)
                     {
@@ -199,17 +199,17 @@ public class NeuralNetwork {
                     }
                     else if (randomNumber <= 4f)
                     {
-                        weight = UnityEngine.Random.Range(-0.5f, 0.5f);
+                        weight = Random.Range(-0.5f, 0.5f);
                     }
                     else if (randomNumber <= 6f)
                     {
-                        float factor = UnityEngine.Random.Range(0f, 1f) + 1f;
+                        float factor = Random.Range(0f, 1f) + 1f;
 
                         weight *= factor;
                     }
                     else if (randomNumber <= 8f)
                     {
-                        float factor = UnityEngine.Random.Range(0f, 1f);
+                        float factor = Random.Range(0f, 1f);
 
                         weight *= factor;
                     }

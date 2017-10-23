@@ -21,6 +21,8 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
     public float Age { get; private set; }
     public float Energy { get; private set; }
 
+    private bool markedAsDead = false;
+
     public void InheritFrom(EntityController entity)
     {
         Brain      = new NeuralNetwork(entity.Brain);
@@ -32,7 +34,7 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
 
     public bool isAlive()
     {
-        return Energy > 0;
+        return markedAsDead || Energy > 0;
     }
 
 	// Use this for initialization
@@ -42,7 +44,7 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
         Energy = 1000;
 
         Genes      = new Genes();
-        Brain      = new NeuralNetwork(new int[4] { 4, 64, 64, 4 });
+        Brain      = new NeuralNetwork(new int[4] { 4, 32, 24, 4 });
         Legs       = new EightDirController(this);
 
         NeuStr = Brain.lineage;
@@ -68,6 +70,22 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
             Age += Time.deltaTime;
             Energy -= Time.deltaTime;
         }
+        else
+        {
+            if (!markedAsDead)
+            {
+                Renderer[] rs = GetComponentsInChildren<Renderer>();
+
+                foreach( Renderer r in rs)
+                {
+                    Material m = r.material;
+                    m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+                    r.material = m;
+                }
+
+                markedAsDead = true;
+            }
+        }
     }
 
     void OnCollisionEnter(Collision collision)
@@ -84,7 +102,10 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
     {
         if (Energy > 0)
         {
-            Legs.HandleInput(Output[0], Output[1]);
+            if (!Legs.HandleInput(Output[0], Output[1]))
+            {
+                UseEnergy(5f);
+            }
         }
     }
 

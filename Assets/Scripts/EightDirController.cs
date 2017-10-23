@@ -26,18 +26,20 @@ public class EightDirController {
         turnSpeed = entity.Genes.Legs.turnSpeed;
     }
 
-    public void HandleInput(float x, float y)
+    public bool HandleInput(float x, float y)
     {
         input = new Vector2(x, y);
 
-        if( Mathf.Abs(input.x) < 0.85f && Mathf.Abs(input.y) < 0.85f )
+        if( Mathf.Abs(input.x) < 0.33f && Mathf.Abs(input.y) < 0.33f )
         {
-            return;
+            return false;
         }
 
         CalculateDirection();
         Rotate();
         Move();
+
+        return true;
     }
 
 
@@ -58,7 +60,7 @@ public class EightDirController {
     {
         targetRotation            = Quaternion.Euler(0, angle, 0);
         Quaternion rotationVector = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
-        body.AddTorque(rotationVector.eulerAngles, ForceMode.Impulse);
+        body.AddRelativeTorque(rotationVector.eulerAngles, ForceMode.Impulse);
 
         entity.UseEnergy(turnSpeed / 10f);
     }
@@ -69,7 +71,7 @@ public class EightDirController {
     private void Move()
     {
         //entity.transform.position += entity.transform.forward * velocity * Time.deltaTime;
-        body.AddForce(entity.transform.forward * velocity, ForceMode.Impulse);
+        body.AddRelativeForce(entity.transform.forward * velocity, ForceMode.Impulse);
 
         entity.UseEnergy(velocity / 10f);
     }

@@ -27,7 +27,7 @@ public class SimulationManager : MonoBehaviour
     private ThirdPersonCameraController thirdPersonCameraController;
 
     private float spawnBoundary = 430f;
-    private bool isRunning = false;
+    private bool isRunning = true;
     private int cycle      = 0;
 
     protected List<EntityController> Entities;
@@ -71,19 +71,18 @@ public class SimulationManager : MonoBehaviour
     {
         DetectMouseEvents();
         DetectKeyboardEvents();
+	}
 
-        if ( isRunning)
+    private void LateUpdate()
+    {
+        if (!isRunning)
         {
-
-        }
-        else
-        {
-            if ( Entities.Count > 0 )
+            if (Entities.Count > 0)
             {
                 CreateChildrenEntities();
             }
         }
-	}
+    }
 
     private void FixedUpdate()
     {
@@ -240,7 +239,16 @@ public class SimulationManager : MonoBehaviour
         foreach(Renderer r in childRenderers)
         {
             Material m = r.material;
-            m.color = new Color(1, 0, 0, 1);
+
+            if (SelectedEntity.isAlive())
+            {
+                m.color = Color.red;
+            }
+            else
+            {
+                m.color = new Color(0.67f, 0, 0, 1);
+            }
+
             r.material = m;
         }
     }
@@ -263,6 +271,16 @@ public class SimulationManager : MonoBehaviour
             foreach (Renderer childRenderer in r)
             {
                 Material m = childRenderer.material;
+
+                if (obj.isAlive())
+                {
+                    m.color = Color.green;
+                }
+                else
+                {
+                    m.color = new Color(0, 0.67f, 0, 1);
+                }
+
                 m.color = Color.green;
                 childRenderer.material = m;
             }
@@ -292,7 +310,14 @@ public class SimulationManager : MonoBehaviour
         foreach (Renderer r in childRenderers)
         {
             Material m = r.material;
-            m.color = Color.blue;
+            if (SelectedEntity.isAlive())
+            {
+                m.color = new Color(0, 0, 1, 1);
+            }
+            else
+            {
+                m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+            }
             r.material = m;
         }
 
@@ -311,7 +336,15 @@ public class SimulationManager : MonoBehaviour
         foreach (Renderer childRenderer in r)
         {
             Material m = childRenderer.material;
-            m.color = Color.blue;
+            if (HoveredEntity.isAlive())
+            {
+                m.color = new Color(0, 0, 1, 1);
+            }
+            else
+            {
+                m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+            }
+
             childRenderer.material = m;
         }
 
