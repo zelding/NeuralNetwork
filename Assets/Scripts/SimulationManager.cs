@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,9 +7,12 @@ public class SimulationManager : MonoBehaviour
     public EntityController SelectedEntity { get; private set; }
     public EntityController HoveredEntity;
 
+    public EntityInfoRenderer EntityInfoRenderer;
+
     public Camera TopDownCamera;
     public Camera FollowingCamera;
 
+    public Text txt_pop_size;
     public Text txt_generation;
     public Text txt_entity_name;
     public Text txt_entity_energy;
@@ -31,9 +33,12 @@ public class SimulationManager : MonoBehaviour
     private int cycle      = 0;
 
     protected List<EntityController> Entities;
+    protected List<EntityController> WorstEntities;
+    protected List<EntityController> BestEntities;
+    protected List<EntityController> MiddleEntities;
 
-	// Use this for initialization
-	void Start ()
+    // Use this for initialization
+    void Start ()
     {
         TopDownCamera.enabled = true;
         FollowingCamera.enabled = false;
@@ -41,12 +46,16 @@ public class SimulationManager : MonoBehaviour
 
         cycle = 1;
         Entities = new List<EntityController>();
+        WorstEntities = new List<EntityController>();
+        BestEntities = new List<EntityController>();
+        MiddleEntities = new List<EntityController>();
+
         thirdPersonCameraController = GetComponent<ThirdPersonCameraController>();
         thirdPersonCameraController.enabled = false;
 
 		for(int i = 0; i < startingFishes; i++)
         {
-            Vector3 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+            var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
             do {
                 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
@@ -55,7 +64,7 @@ public class SimulationManager : MonoBehaviour
 
             GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity);
 
-            var euler = fish.transform.eulerAngles;
+            Vector3 euler = fish.transform.eulerAngles;
             euler.y = Random.Range(-180f, 180f);
             fish.transform.eulerAngles = euler;
 
@@ -86,7 +95,7 @@ public class SimulationManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (isRunning)
+        if (isRunning && Entities.Count > 0)
         {
             bool theyAreAllDead = false;
 
@@ -108,31 +117,44 @@ public class SimulationManager : MonoBehaviour
         cycle++;
 
         Entities.Sort();
-        Entities.Reverse();
 
-        List<EntityController> nextGeneration = new List<EntityController>();
+        int count = Entities.Count;
+        int middle = (Entities.Count % 2 == 0) ? Entities.Count / 2 : (Entities.Count + 1) / 2;
 
-        for(int j = 0; j< 2; j++)
-        for(int i = 0; i < Entities.Count / 2; i++)
+        var nextGeneration = new List<EntityController>();
+
+        WorstEntities.Add(Entities[ 0 ]);
+        BestEntities.Add(Entities[ Entities.Count - 1 ]);
+        MiddleEntities.Add(Entities[ middle ]);
+
+        for(int i = middle; i < count; i++)
         {
-            Vector3 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-
-            do
+            for( int k = 0; k < 2; k++ )
             {
-                startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-                //startRotation = new Quaternion(0, Random.Range(-90f, 90f), 0, 0);
-            } while (IsCloseToOthers(startPosition));
+                var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
-            GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity);
+                do
+                {
+                    startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+                } while( IsCloseToOthers(startPosition) );
 
-            var euler = fish.transform.eulerAngles;
-            euler.y = Random.Range(-180f, 180f);
-            fish.transform.eulerAngles = euler;
+                GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity);
 
-            EntityController fishController = fish.GetComponent<EntityController>();
-            fishController.InheritFrom(Entities[i]);
+                Vector3 euler = fish.transform.eulerAngles;
+                euler.y = Random.Range(-180f, 180f);
+                fish.transform.eulerAngles = euler;
 
-            nextGeneration.Add(fishController);
+                EntityController fishController = fish.GetComponent<EntityController>();
+                fishController.InheritFrom(Entities[ i ]);
+
+                nextGeneration.Add(fishController);
+            }
+        }
+
+        foreach( EntityController entity in Entities )
+        {
+            Destroy(entity.gameObject);
+            //Entities.Remove(entity);
         }
 
         Entities = nextGeneration;
@@ -140,28 +162,13 @@ public class SimulationManager : MonoBehaviour
         isRunning = true;
     }
 
-    public static string FloatFToString(float f)
-    {
-        return f.ToString("0.00");
-    }
-
-    public static string JoinArray(string[] data)
-    {
-        return string.Join(", ", data);
-    }
-
     private void OnGUI()
     {
+        txt_pop_size.text   = "Population: " + WorstEntities.Count + " / " + Entities.Count;
         txt_generation.text = "Generation: " + cycle;
 
-        if ( SelectedEntity != null )
-        {
-            txt_entity_name.text = "Entity name: " + SelectedEntity.Name;
-            txt_entity_energy.text = "Energy: " + SelectedEntity.Energy;
-            txt_entity_age.text = "Age: " + SelectedEntity.Age;
-
-            txt_input.text = "Input: " + JoinArray(System.Array.ConvertAll(SelectedEntity.Input, new System.Converter<float, string>(FloatFToString)));
-            txt_output.text = "Output: " + JoinArray(System.Array.ConvertAll(SelectedEntity.Output, new System.Converter<float, string>(FloatFToString)));
+        if ( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null ) {
+            EntityInfoRenderer.SelectedEntity = SelectedEntity;
         }
     }
 
@@ -251,6 +258,8 @@ public class SimulationManager : MonoBehaviour
 
             r.material = m;
         }
+
+        EntityInfoRenderer.SelectedEntity = SelectedEntity;
     }
 
     private void HoverSelectable(EntityController obj)
@@ -287,6 +296,8 @@ public class SimulationManager : MonoBehaviour
 
             HoveredEntity = obj;
         }
+
+        EntityInfoRenderer.SelectedEntity = HoveredEntity;
     }
 
     /// <summary>
@@ -322,6 +333,7 @@ public class SimulationManager : MonoBehaviour
         }
 
         SelectedEntity = null;
+        EntityInfoRenderer.SelectedEntity = SelectedEntity;
     }
 
     private void ClearHover()
@@ -349,6 +361,7 @@ public class SimulationManager : MonoBehaviour
         }
 
         HoveredEntity = null;
+        EntityInfoRenderer.SelectedEntity = null;
     }
 
     private bool IsCloseToOthers(Vector3 pos)

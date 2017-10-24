@@ -34,7 +34,7 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
 
     public bool isAlive()
     {
-        return markedAsDead || Energy > 0;
+        return !markedAsDead || Energy > 0;
     }
 
 	// Use this for initialization
@@ -90,7 +90,18 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
 
     void OnCollisionEnter(Collision collision)
     {
-        //Debug.Log("Collided with: " + collision.gameObject.name);
+        if (collision.gameObject.tag == "Fish")
+        {
+            EntityController otherFish = collision.gameObject.GetComponent<EntityController>();
+
+            if (otherFish != null && !otherFish.isAlive() )
+            {
+                Debug.Log(Name + " ate " + otherFish.Name);
+
+                otherFish.enabled = false;
+                Energy += 200;
+            }
+        }
     }
 
     private void FixedUpdate()
