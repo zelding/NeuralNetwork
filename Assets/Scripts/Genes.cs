@@ -3,8 +3,15 @@ using UnityEngine;
 
 public class Genes
 {
-    public abstract class AMutateable
+    public interface IMutatable
     {
+        void Mutate();
+    }
+
+    public abstract class AMutateable 
+    {
+        public bool isMutated = false;
+
         abstract internal void Mutate();
 
         protected float MutateValue(float value, float min = -0.5f, float max = 0.5f)
@@ -14,22 +21,30 @@ public class Genes
             if (randomNumber <= 2f)
             {
                 value *= -1f;
+
+                isMutated = true;
             }
             else if (randomNumber <= 4f)
             {
                 value = Random.Range(min, max);
+
+                isMutated = true;
             }
             else if (randomNumber <= 6f)
             {
                 float factor = Random.Range(0f, 1f) + 1f;
 
                 value *= factor;
+
+                isMutated = true;
             }
             else if (randomNumber <= 8f)
             {
                 float factor = Random.Range(0f, 1f);
 
                 value *= factor;
+
+                isMutated = true;
             }
 
             return value;
@@ -113,16 +128,31 @@ public class Genes
     public Movement Legs { get; internal set; }
     public Sight Eyes { get; internal set; }
 
+    public List<AMutateable> Chromosomes;
+
+    public bool isMutated = false;
+
     public Genes()
     {
         Legs = new Movement();
         Eyes = new Sight();
+
+        Chromosomes = new List<AMutateable> {
+            new Movement(),
+            new Sight()
+        };
     }
 
     public Genes(Genes genes)
     {
         Legs = new Movement(genes.Legs);
         Eyes = new Sight(genes.Eyes);
+
+        /*Chromosomes = new List<AMutateable> {
+            new Movement(),
+            new Sight()
+        }.ForEach(IMutatable c => c.Mutate());*/
+
         Mutate();
     }
 
@@ -130,6 +160,8 @@ public class Genes
     {
         Legs.Mutate();
         Eyes.Mutate();
+
+        isMutated = Legs.isMutated || Eyes.isMutated;
     }
 }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EntityController : MonoBehaviour , System.IComparable<EntityController>
+public class EntityController : MonoBehaviour, System.IComparable<EntityController>
 {
 
     public string Name { get; private set; }
@@ -10,26 +10,51 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
     public NeuralNetwork Brain;
     public Genes Genes;
     public EightDirController Legs;
+    public SphereCollider Nose;
 
     public float[] Output { get; private set; }
     public float[] Input { get; set; }
 
     public string NeuStr;
 
-    public float speed = 18.334f;
-
     public float Age { get; private set; }
     public float Energy { get; private set; }
+    public float Distance { get; private set; }
+    public float Consumption { get; private set; }
 
     private bool markedAsDead = false;
+    private bool eaten = false;
 
-    public void InheritFrom(EntityController entity)
+    private bool isInited = false;
+
+    private Vector3 lastPosition;
+
+    private Quaternion lastNoseTartget;
+
+    public void InheritFrom( EntityController entity )
     {
-        Brain      = new NeuralNetwork(entity.Brain);
-        Genes      = new Genes(entity.Genes);
-        Legs       = new EightDirController(entity);
+        Brain = new NeuralNetwork(entity.Brain);
+        Genes = new Genes(entity.Genes);
+        Legs = new EightDirController(this);
 
-        Name = entity.Name + " Jr.";
+        Name = entity.Name + entity.Name[ entity.Name.Length - 1 ];
+
+        if( Genes.isMutated )
+        {
+            Name = Name + Collections.Names[ Random.Range(0, Collections.Names.Count) ][ 0 ];
+        }
+        
+        if( Brain.isMutated )
+        {
+            Name += Collections.Names[ Random.Range(0, Collections.Names.Count) ][ 1 ];
+        }
+
+        if ( Genes.isMutated && Brain.isMutated ) 
+        {
+            Name = Name.Contains("X-") ? Name.Replace("X-", "") : "X-" + Name;
+        }
+
+        isInited = true;
     }
 
     public bool isAlive()
@@ -37,46 +62,61 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
         return !markedAsDead || Energy > 0;
     }
 
-	// Use this for initialization
-	void Start ()
+    // Use this for initialization
+    void Start()
     {
-        Age    = 0;
+        if( !isInited )
+        {
+            Genes = new Genes();
+            Brain = new NeuralNetwork(new int[ 4 ] { 2, 32, 32, 4 });
+            Legs = new EightDirController(this);
+
+            Name = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
+        }
+
+        name = "Fish " + Name;
+        NeuStr = Brain.lineage;
+        Distance = 0f;
+        Consumption = 0f;
+
+        Age = 0;
         Energy = 1000;
 
-        Genes      = new Genes();
-        Brain      = new NeuralNetwork(new int[4] { 4, 32, 24, 4 });
-        Legs       = new EightDirController(this);
-
-        NeuStr = Brain.lineage;
-
-        Name = Collections.Names[ Random.Range( 0, Collections.Names.Count ) ];
-        name = "Entity - " + Name;
+        lastPosition = transform.position;
     }
-	
-	// Update is called once per frame
-	void Update ()
+
+    // Update is called once per frame
+    void Update()
     {
-        if (Energy > 0)
+        if( Energy > 0 )
         {
-            Input = new float[4] {
-                Random.Range(-10f, 10f),
-                Random.Range(-1f, 1f),
-                Random.Range(-1f, 1f),
-                Random.Range(-1f, 1f)
+            float noseInput = 0f;
+
+            if( lastNoseTartget != Quaternion.identity )
+            {
+                noseInput = lastNoseTartget.eulerAngles.y;
+            }
+
+            Input = new float[ 2 ] {
+                NeuralNetwork.Normalize(noseInput),
+                NeuralNetwork.Normalize(Age),
             };
 
             Output = Brain.FeedForward(Input);
 
             Age += Time.deltaTime;
-            Energy -= Time.deltaTime;
+            Energy -= Mathf.Abs(Time.deltaTime);
+            Distance += Vector3.Distance(lastPosition, transform.position);
+            lastPosition = transform.position;
         }
         else
         {
-            if (!markedAsDead)
+            lastNoseTartget = Quaternion.identity;
+
+            if( !markedAsDead )
             {
                 Renderer[] rs = GetComponentsInChildren<Renderer>();
-
-                foreach( Renderer r in rs)
+                foreach( Renderer r in rs )
                 {
                     Material m = r.material;
                     m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
@@ -88,57 +128,95 @@ public class EntityController : MonoBehaviour , System.IComparable<EntityControl
         }
     }
 
-    void OnCollisionEnter(Collision collision)
+    void OnCollisionEnter( Collision collision )
     {
-        if (collision.gameObject.tag == "Fish")
+        if( Energy > 0 )
         {
-            EntityController otherFish = collision.gameObject.GetComponent<EntityController>();
-
-            if (otherFish != null && !otherFish.isAlive() )
+            if( collision.gameObject.tag == "Fish" )
             {
-                Debug.Log(Name + " ate " + otherFish.Name);
+                EntityController otherFish = collision.gameObject.GetComponent<EntityController>();
 
-                otherFish.enabled = false;
-                Energy += 200;
+                if( otherFish != null && !otherFish.isAlive() && !otherFish.eaten )
+                {
+                    Debug.Log(Name + " ate " + otherFish.Name);
+
+                    otherFish.enabled = false;
+                    otherFish.eaten = true;
+                    Energy += 200;
+                    Consumption += 200;
+                }
+            }
+        }
+    }
+
+    void OnTriggerEnter( Collider other )
+    {
+
+        if( Energy > 0 )
+        {
+            if( other.gameObject != gameObject && other.gameObject.tag == "Fish" )
+            {
+                lastNoseTartget = Quaternion.RotateTowards(transform.rotation, other.transform.rotation, 45f);
+            }
+        }
+    }
+
+    void OnTriggerExit( Collider other )
+    {
+        if( Energy > 0 )
+        {
+            if( other.gameObject != this && other.gameObject.tag == "Fish" )
+            {
+                lastNoseTartget = Quaternion.identity;
             }
         }
     }
 
     private void FixedUpdate()
     {
-        
+
     }
 
     private void LateUpdate()
     {
-        if (Energy > 0)
+        if( Energy > 0 )
         {
-            if (!Legs.HandleInput(Output[0], Output[1]))
+            if( !Legs.HandleInput(Input[ 0 ], Input[ 1 ]) )
             {
-                UseEnergy(5f);
+                UseEnergy(2f);
             }
         }
     }
 
     private void OnDrawGizmos()
     {
-        float distance = 5.00f;
+        if( Energy > 0 )
+        {
+            float distance = 5.00f;
 
-        Gizmos.DrawRay(transform.position, transform.forward * (distance + transform.localScale.z));
+            Gizmos.DrawRay(transform.position, transform.forward * (distance + transform.localScale.z));
+
+            if( lastNoseTartget != Quaternion.identity )
+            {
+                Gizmos.DrawWireSphere(transform.position, 60);
+            }
+        }
     }
 
-    public void UseEnergy(float amount)
+    public void UseEnergy( float amount )
     {
-        Energy -= amount;
+        Energy -= Mathf.Abs(amount);
     }
 
     #region ICopmare
 
-    public int CompareTo(EntityController other)
+    public int CompareTo( EntityController other )
     {
-        if (other == null) return 1;
+        if( other == null ) return 1;
 
-        return Energy.CompareTo(other.Energy);
+        float sum = Distance + Age;
+
+        return sum.CompareTo(other.Distance + other.Age);
     }
 
     #endregion
