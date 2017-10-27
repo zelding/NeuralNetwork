@@ -36,8 +36,8 @@ public class FieldOfView : MonoBehaviour {
 
 	IEnumerator FindTargetsWithDelay(float delay) {
 		while (true) {
-			yield return new WaitForSeconds (delay);
-            FindVisibleTargets();
+            if( enabled ) FindVisibleTargets();
+            yield return new WaitForSeconds (delay);
 		}
 	}
 

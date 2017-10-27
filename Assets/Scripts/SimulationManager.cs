@@ -267,18 +267,17 @@ public class SimulationManager : MonoBehaviour
         thirdPersonCameraController.smoothSpeed = SelectedEntity.Genes.Legs.smoothSpeed;
 
         Renderer childRenderers = SelectedEntity.GetComponent<Renderer>();
-
         
-            Material m = childRenderers.material;
+        Material m = childRenderers.material;
 
-            if( SelectedEntity.isAlive() )
-            {
-                m.color = Color.red;
-            }
-            else
-            {
-                m.color = new Color(0.67f, 0, 0, 1);
-            }
+        if( SelectedEntity.isAlive() )
+        {
+            m.color = Color.red;
+        }
+        else
+        {
+            m.color = new Color(0.67f, 0, 0, 1);
+        }
 
         childRenderers.material = m;
 
@@ -356,7 +355,7 @@ public class SimulationManager : MonoBehaviour
 
     private void ClearHover()
     {
-        if( HoveredEntity == null )
+        if( HoveredEntity == null || SelectedEntity == HoveredEntity )
         {
             return;
         }

@@ -26,8 +26,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public float Distance { get; private set; }
     public float Consumption { get; private set; }
 
-    
-
     private bool markedAsDead = false;
     private bool eaten = false;
 
@@ -80,7 +78,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( !isInited )
         {
             Genes = new Genes();
-            Brain = new NeuralNetwork(new int[ 4 ] { 3, 32, 32, 4 });
+            Brain = new NeuralNetwork(new int[ 5 ] { 5, 64, 48, 64, 8 });
             Legs = new EightDirController(this);
 
             Name = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
@@ -115,10 +113,12 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 eyeInput = Eye.visibleTargets[ 0 ].eulerAngles.y;
             }
 
-            Input = new float[ 3 ] {
+            Input = new float[ 5 ] {
                 noseInput,
-                Age,
-                eyeInput
+                Distance,
+                eyeInput,
+                Energy,
+                NeuralNetwork.Normalize(Age)
             };
 
             Output = Brain.FeedForward(Input);
@@ -134,13 +134,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             if( !markedAsDead )
             {
-                Renderer[] rs = GetComponentsInChildren<Renderer>();
-                foreach( Renderer r in rs )
-                {
-                    Material m = r.material;
-                    m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
-                    r.material = m;
-                }
+                Renderer r = GetComponent<Renderer>();
+
+                Material m = r.material;
+                m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+                r.material = m;
 
                 markedAsDead = true;
             }
@@ -175,7 +173,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         {
             if( other.gameObject != gameObject && other.transform.root.tag == "Fish" )
             {
-                lastNoseTartget = Quaternion.RotateTowards(transform.rotation, other.transform.rotation, 45f);
+                lastNoseTartget = Quaternion.RotateTowards(transform.rotation, other.transform.rotation, 5f);
             }
         }
     }
@@ -187,19 +185,20 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     private void FixedUpdate()
     {
-
+        
     }
 
     private void LateUpdate()
     {
         if( Energy > 0 )
         {
-            if( !Legs.HandleInput(Input[ 0 ], Input[ 1 ]) )
+            if( Legs != null && !Legs.HandleInput(Input[ 0 ], Input[ 1 ]) )
             {
                 UseEnergy(2f);
             }
         }
-        else {
+        else
+        {
             Eye.enabled = false;
             Nose.enabled = false;
         }
