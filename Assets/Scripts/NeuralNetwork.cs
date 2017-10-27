@@ -4,9 +4,17 @@ using UnityEngine;
 public class NeuralNetwork
 {
 
+    public List<NeuralNetwork> History { get; protected set; }
+
+    protected NeuralNetwork LastVersion { get; private set; }
+
+    protected readonly bool historyEnabled = false;
+
     public readonly float PHI = Mathf.Pow(5f,0.5f) * 0.5f + 0.5f;
 
     public bool isMutated = false;
+
+    public int mutationsCount;
 
     public int[]       layers;
 
@@ -21,9 +29,12 @@ public class NeuralNetwork
     /// Number of neurons in a given layer
     /// </summary>
     /// <param name="layers"></param>
-	public NeuralNetwork( int[] layers )
+    /// <param name="historyEnabled" type="bool" default="false">Enables the neuralnet data to bi stored in an ordered array</param>
+	public NeuralNetwork( int[] layers, bool historyEnabled = false )
     {
+        this.historyEnabled =  historyEnabled;
         gen = 1;
+        mutationsCount = 0;
         lineage = "|" + layers.Length + "|";
 
         this.layers = new int[ layers.Length ];
@@ -33,9 +44,21 @@ public class NeuralNetwork
             this.layers[ i ] = layers[ i ];
         }
 
+        if( historyEnabled )
+        {
+            var LastVersion = new NeuralNetwork(this);
+            var History     = new List<NeuralNetwork>();
+        }
+
         InitNeurons();
         weights = InitMatrix();
-        biases = InitMatrix(-0.34f, 0.34f);
+        biases = InitMatrix(-0.174f, 0.174f);
+
+        if( historyEnabled )
+        {
+            History.Add(new NeuralNetwork(LastVersion) );
+            LastVersion = new NeuralNetwork(this);
+        }
     }
 
     /// <summary>
@@ -44,7 +67,9 @@ public class NeuralNetwork
     /// <param name="copyME"></param>
     public NeuralNetwork( NeuralNetwork copyME )
     {
+        historyEnabled = false;
         gen = copyME.gen + 1;
+        mutationsCount = 0;
         lineage = copyME.lineage + "" + gen + "|";
 
         layers = new int[ copyME.layers.Length ];
@@ -61,6 +86,15 @@ public class NeuralNetwork
         isMutated = false;
 
         Mutate();
+    }
+
+    protected void SaveState()
+    {
+        if( historyEnabled )
+        {
+            History.Add(new NeuralNetwork(LastVersion));
+            LastVersion = new NeuralNetwork(this);
+        }
     }
 
     /// <summary>
@@ -200,12 +234,14 @@ public class NeuralNetwork
                         weight *= -1f;
 
                         isMutated = true;
+                        mutationsCount++;
                     }
                     else if( randomNumber <= 4f )
                     {
                         weight = Random.Range(-0.5f, 0.5f);
 
                         isMutated = true;
+                        mutationsCount++;
                     }
                     else if( randomNumber <= 6f )
                     {
@@ -214,6 +250,7 @@ public class NeuralNetwork
                         weight *= factor;
 
                         isMutated = true;
+                        mutationsCount++;
                     }
                     else if( randomNumber <= 8f )
                     {
@@ -222,6 +259,7 @@ public class NeuralNetwork
                         weight *= factor;
 
                         isMutated = true;
+                        mutationsCount++;
                     }
 
                     weights[ i ][ j ][ k ] = weight;

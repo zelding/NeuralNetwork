@@ -20,7 +20,7 @@ public class EightDirController {
     public EightDirController(EntityController entity, Camera camera = null)
     {
         this.entity     = entity;
-        body = entity.GetComponent<Rigidbody>();
+        body = entity.GetComponentInChildren<Rigidbody>();
 
         velocity  = entity.Genes.Legs.speed;
         turnSpeed = entity.Genes.Legs.turnSpeed;
@@ -30,7 +30,7 @@ public class EightDirController {
     {
         input = new Vector2(x, y);
 
-        if( Mathf.Abs(input.x) < 0.33f && Mathf.Abs(input.y) < 0.33f )
+        if( Mathf.Abs(input.x) < 0.67f && Mathf.Abs(input.y) < 0.67f )
         {
             return false;
         }
@@ -41,7 +41,6 @@ public class EightDirController {
 
         return true;
     }
-
 
     /// <summary>
     /// Dir relative to the cameras rotation

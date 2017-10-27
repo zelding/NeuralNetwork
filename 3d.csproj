@@ -78,13 +78,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\asdasd.cs" />
     <Compile Include="Assets\Scripts\CameraManager.cs" />
     <Compile Include="Assets\Scripts\Collections.cs" />
+    <Compile Include="Assets\Scripts\Controller.cs" />
     <Compile Include="Assets\Scripts\EightDirController.cs" />
     <Compile Include="Assets\Scripts\EntityController.cs" />
     <Compile Include="Assets\Scripts\EntityInfoRenderer.cs" />
+    <Compile Include="Assets\Scripts\FieldOfView.cs" />
     <Compile Include="Assets\Scripts\Genes.cs" />
+    <Compile Include="Assets\Scripts\MainCameraStuff.cs" />
     <Compile Include="Assets\Scripts\NeuralNetwork.cs" />
+    <Compile Include="Assets\Scripts\Sensor.cs" />
     <Compile Include="Assets\Scripts\SimulationManager.cs" />
     <Compile Include="Assets\Scripts\ThirdPersonCameraController.cs" />
   </ItemGroup>

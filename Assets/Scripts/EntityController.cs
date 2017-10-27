@@ -11,6 +11,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public Genes Genes;
     public EightDirController Legs;
     public SphereCollider Nose;
+    public FieldOfView Eye;
+    public Transform Body;
+
+    [Range(500, 5000)]
+    public float Energy;
 
     public float[] Output { get; private set; }
     public float[] Input { get; set; }
@@ -18,9 +23,10 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public string NeuStr;
 
     public float Age { get; private set; }
-    public float Energy { get; private set; }
     public float Distance { get; private set; }
     public float Consumption { get; private set; }
+
+    
 
     private bool markedAsDead = false;
     private bool eaten = false;
@@ -30,6 +36,12 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private Vector3 lastPosition;
 
     private Quaternion lastNoseTartget;
+
+    public void Awake()
+    {
+        Eye = GetComponentInChildren<FieldOfView>();
+        Nose = GetComponentInChildren<SphereCollider>();
+    }
 
     public void InheritFrom( EntityController entity )
     {
@@ -68,7 +80,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( !isInited )
         {
             Genes = new Genes();
-            Brain = new NeuralNetwork(new int[ 4 ] { 2, 32, 32, 4 });
+            Brain = new NeuralNetwork(new int[ 4 ] { 3, 32, 32, 4 });
             Legs = new EightDirController(this);
 
             Name = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
@@ -91,15 +103,22 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( Energy > 0 )
         {
             float noseInput = 0f;
+            float eyeInput = 0f;
 
             if( lastNoseTartget != Quaternion.identity )
             {
                 noseInput = lastNoseTartget.eulerAngles.y;
             }
 
-            Input = new float[ 2 ] {
-                NeuralNetwork.Normalize(noseInput),
-                NeuralNetwork.Normalize(Age),
+            if( Eye.visibleTargets.Count > 0 )
+            {
+                eyeInput = Eye.visibleTargets[ 0 ].eulerAngles.y;
+            }
+
+            Input = new float[ 3 ] {
+                noseInput,
+                Age,
+                eyeInput
             };
 
             Output = Brain.FeedForward(Input);
@@ -134,7 +153,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         {
             if( collision.gameObject.tag == "Fish" )
             {
-                EntityController otherFish = collision.gameObject.GetComponent<EntityController>();
+                EntityController otherFish = collision.gameObject.GetComponentInParent<EntityController>();
 
                 if( otherFish != null && !otherFish.isAlive() && !otherFish.eaten )
                 {
@@ -154,7 +173,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
         if( Energy > 0 )
         {
-            if( other.gameObject != gameObject && other.gameObject.tag == "Fish" )
+            if( other.gameObject != gameObject && other.transform.root.tag == "Fish" )
             {
                 lastNoseTartget = Quaternion.RotateTowards(transform.rotation, other.transform.rotation, 45f);
             }
@@ -163,13 +182,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     void OnTriggerExit( Collider other )
     {
-        if( Energy > 0 )
-        {
-            if( other.gameObject != this && other.gameObject.tag == "Fish" )
-            {
-                lastNoseTartget = Quaternion.identity;
-            }
-        }
+        lastNoseTartget = Quaternion.identity;
     }
 
     private void FixedUpdate()
@@ -185,6 +198,10 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             {
                 UseEnergy(2f);
             }
+        }
+        else {
+            Eye.enabled = false;
+            Nose.enabled = false;
         }
     }
 

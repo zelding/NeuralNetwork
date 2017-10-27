@@ -6,6 +6,9 @@ public class SimulationManager : MonoBehaviour
 {
     public GameObject fishList;
 
+    public LayerMask EntityLayer;
+    public LayerMask ObstacleLayer;
+
     public EntityController SelectedEntity { get; private set; }
     public EntityController HoveredEntity;
 
@@ -21,22 +24,22 @@ public class SimulationManager : MonoBehaviour
 
     private Camera currentCamera;
 
-    public int startingFishes = 30;
+    public int startingFishes = 50;
     public GameObject fishBody;
 
     private ThirdPersonCameraController thirdPersonCameraController;
 
     private float spawnBoundary = 430f;
     private bool isRunning = true;
-    private int cycle      = 0;
+    public int Generation      = 0;
 
     private bool cycleEntities = false;
     private float lastCycle = 0f;
 
-    protected List<EntityController> Entities;
-    protected List<EntityController> WorstEntities;
-    protected List<EntityController> BestEntities;
-    protected List<EntityController> MiddleEntities;
+    public List<EntityController> Entities;
+    public List<EntityController> WorstEntities;
+    public List<EntityController> BestEntities;
+    public List<EntityController> MiddleEntities;
 
     // Use this for initialization
     void Start()
@@ -45,7 +48,7 @@ public class SimulationManager : MonoBehaviour
         FollowingCamera.enabled = false;
         currentCamera = TopDownCamera;
 
-        cycle = 1;
+        Generation = 1;
         Entities = new List<EntityController>();
         WorstEntities = new List<EntityController>();
         BestEntities = new List<EntityController>();
@@ -61,10 +64,9 @@ public class SimulationManager : MonoBehaviour
             do
             {
                 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-                //startRotation = new Quaternion(0, Random.Range(-90f, 90f), 0, 0);
             } while( IsCloseToOthers(startPosition) );
 
-            GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity);
+            GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
 
             Vector3 euler = fish.transform.eulerAngles;
             euler.y = Random.Range(-180f, 180f);
@@ -93,19 +95,6 @@ public class SimulationManager : MonoBehaviour
                 CreateChildrenEntities();
             }
         }
-
-        //WorstEntityInfoRenderer = null;
-        //BestEntityInfoRenderer = null;
-
-        if ( WorstEntities.Count > 0 )
-        {
-            WorstEntityInfoRenderer.SelectedEntity = WorstEntities[ WorstEntities.Count - 1 ];
-        }
-
-        if( BestEntities.Count > 0 )
-        {
-            BestEntityInfoRenderer.SelectedEntity = BestEntities[ BestEntities.Count - 1 ];
-        }
     }
 
     private void FixedUpdate()
@@ -129,7 +118,7 @@ public class SimulationManager : MonoBehaviour
     private void CreateChildrenEntities()
     {
         Debug.Log("New gen start");
-        cycle++;
+        Generation++;
 
         Entities.Sort();
 
@@ -144,28 +133,25 @@ public class SimulationManager : MonoBehaviour
 
         for( int i = middle; i < count; i++ )
         {
-            for( int k = 0; k < 2; k++ )
+            var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+
+            do
             {
-                var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+                startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+            } while( IsCloseToOthers(startPosition) );
 
-                do
-                {
-                    startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-                } while( IsCloseToOthers(startPosition) );
+            GameObject       fish     = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
+            EntityController fishSoul = fish.GetComponent<EntityController>();
 
-                GameObject       fish     = Instantiate(fishBody, startPosition, Quaternion.identity);
-                EntityController fishSoul = fish.GetComponent<EntityController>();
+            Vector3 euler = fish.transform.eulerAngles;
+            euler.y = Random.Range(-180f, 180f);
+            fish.transform.eulerAngles = euler;
 
-                Vector3 euler = fish.transform.eulerAngles;
-                euler.y = Random.Range(-180f, 180f);
-                fish.transform.eulerAngles = euler;
-
-                fishSoul.InheritFrom(Entities[ i ]);
-                nextGeneration.Add(fishSoul);
-            }
+            fishSoul.InheritFrom(Entities[ i ]);
+            nextGeneration.Add(fishSoul);
         }
 
-        for( int k = 0; k < 10; k++ )
+        for( int k = 0; k < middle; k++ )
         {
             var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
@@ -174,7 +160,7 @@ public class SimulationManager : MonoBehaviour
                 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
             } while( IsCloseToOthers(startPosition) );
 
-            GameObject       fish     = Instantiate(fishBody, startPosition, Quaternion.identity);
+            GameObject       fish     = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
             EntityController fishSoul = fish.GetComponent<EntityController>();
 
             Vector3 euler = fish.transform.eulerAngles;
@@ -183,12 +169,11 @@ public class SimulationManager : MonoBehaviour
             nextGeneration.Add(fishSoul);
         }
 
-            foreach( EntityController entity in Entities )
+        foreach( EntityController entity in Entities )
         {
             Destroy(entity.gameObject);
-            //Entities.Remove(entity);
         }
-
+        Entities.Clear();
         Entities = nextGeneration;
 
         isRunning = true;
@@ -197,7 +182,7 @@ public class SimulationManager : MonoBehaviour
     private void OnGUI()
     {
         txt_pop_size.text = "Population: " + WorstEntities.Count + " / " + Entities.Count;
-        txt_generation.text = "Generation: " + cycle;
+        txt_generation.text = "Generation: " + Generation;
 
         if( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null )
         {
@@ -217,14 +202,14 @@ public class SimulationManager : MonoBehaviour
         Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if( Physics.Raycast(ray, out hit) )
+        if( Physics.Raycast(ray, out hit, EntityLayer) )
         {
-            GameObject HoveredGameObject = hit.transform.root.gameObject;
+            GameObject HoveredGameObject = hit.transform.gameObject;
 
-            if( HoveredGameObject.tag == "Fish" )
+            EntityController foundFish = HoveredGameObject.GetComponent<EntityController>();
+
+            if( foundFish != null )
             {
-                EntityController foundFish = HoveredGameObject.GetComponent<EntityController>();
-
                 if( Input.GetMouseButtonDown(0) )
                 {
                     SelectFish(foundFish);
@@ -242,16 +227,6 @@ public class SimulationManager : MonoBehaviour
         else
         {
             ClearHover();
-        }
-
-        if ( Input.GetMouseButtonDown(3) || Input.GetKeyDown(KeyCode.UpArrow) ) 
-        {
-            currentCamera.transform.position = Vector3.forward * Time.deltaTime;
-        }
-
-        if( Input.GetMouseButtonDown(4) || Input.GetKeyDown(KeyCode.DownArrow) )
-        {
-            currentCamera.transform.position = Vector3.forward / Time.deltaTime;
         }
     }
 
@@ -291,11 +266,10 @@ public class SimulationManager : MonoBehaviour
         thirdPersonCameraController.turnSpeed = SelectedEntity.Genes.Legs.turnSpeed;
         thirdPersonCameraController.smoothSpeed = SelectedEntity.Genes.Legs.smoothSpeed;
 
-        Renderer[] childRenderers = SelectedEntity.GetComponentsInChildren<Renderer>();
+        Renderer childRenderers = SelectedEntity.GetComponent<Renderer>();
 
-        foreach( Renderer r in childRenderers )
-        {
-            Material m = r.material;
+        
+            Material m = childRenderers.material;
 
             if( SelectedEntity.isAlive() )
             {
@@ -306,8 +280,9 @@ public class SimulationManager : MonoBehaviour
                 m.color = new Color(0.67f, 0, 0, 1);
             }
 
-            r.material = m;
-        }
+        childRenderers.material = m;
+
+        ClearHover();
 
         EntityInfoRenderer.SelectedEntity = SelectedEntity;
     }
@@ -325,24 +300,20 @@ public class SimulationManager : MonoBehaviour
         }
         else
         {
-            Renderer[] r = obj.GetComponentsInChildren<Renderer>();
+            Renderer r = obj.GetComponent<Renderer>();
+            Material m = r.material;
 
-            foreach( Renderer childRenderer in r )
+            if( obj.isAlive() )
             {
-                Material m = childRenderer.material;
-
-                if( obj.isAlive() )
-                {
-                    m.color = Color.green;
-                }
-                else
-                {
-                    m.color = new Color(0, 0.67f, 0, 1);
-                }
-
                 m.color = Color.green;
-                childRenderer.material = m;
             }
+            else
+            {
+                m.color = new Color(0, 0.67f, 0, 1);
+            }
+
+            m.color = Color.green;
+            r.material = m;
 
             HoveredEntity = obj;
         }
@@ -366,21 +337,18 @@ public class SimulationManager : MonoBehaviour
             thirdPersonCameraController.Target = null;
         }
 
-        Renderer[] childRenderers = SelectedEntity.GetComponentsInChildren<Renderer>();
-
-        foreach( Renderer r in childRenderers )
+        Renderer r = SelectedEntity.GetComponent<Renderer>();
+ 
+        Material m = r.material;
+        if( SelectedEntity.isAlive() )
         {
-            Material m = r.material;
-            if( SelectedEntity.isAlive() )
-            {
-                m.color = new Color(0, 0, 1, 1);
-            }
-            else
-            {
-                m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
-            }
-            r.material = m;
+            m.color = new Color(0, 0, 1, 1);
         }
+        else
+        {
+            m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+        }
+        r.material = m;
 
         SelectedEntity = null;
         EntityInfoRenderer.SelectedEntity = SelectedEntity;
@@ -388,30 +356,27 @@ public class SimulationManager : MonoBehaviour
 
     private void ClearHover()
     {
-        if( HoveredEntity == null || HoveredEntity == SelectedEntity )
+        if( HoveredEntity == null )
         {
             return;
         }
 
-        Renderer[] r = HoveredEntity.GetComponentsInChildren<Renderer>();
+        Renderer r = HoveredEntity.GetComponent<Renderer>();
 
-        foreach( Renderer childRenderer in r )
+        Material m = r.material;
+        if( HoveredEntity.isAlive() )
         {
-            Material m = childRenderer.material;
-            if( HoveredEntity.isAlive() )
-            {
-                m.color = new Color(0, 0, 1, 1);
-            }
-            else
-            {
-                m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
-            }
-
-            childRenderer.material = m;
+            m.color = new Color(0, 0, 1, 1);
+        }
+        else
+        {
+            m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
         }
 
+        r.material = m;
+
         HoveredEntity = null;
-        EntityInfoRenderer.SelectedEntity = null;
+        EntityInfoRenderer.SelectedEntity = SelectedEntity;
     }
 
     private bool IsCloseToOthers( Vector3 pos )
