@@ -4,37 +4,46 @@ using System.Collections.Generic;
 
 public class FieldOfView : MonoBehaviour {
 
-	public float viewRadius;
-	[Range(0,360)]
-	public float viewAngle;
+    public float viewRadius;
+    [Range(0,360)]
+    public float viewAngle;
 
-	public LayerMask targetMask;
-	public LayerMask obstacleMask;
+    public LayerMask targetMask;
+    public LayerMask obstacleMask;
 
-	[HideInInspector]
-	public List<Transform> visibleTargets = new List<Transform>();
 
-	public float meshResolution;
-	public int edgeResolveIterations;
-	public float edgeDstThreshold;
+    public List<Transform> visibleTargets = new List<Transform>();
 
-    Transform Body;
+    public float meshResolution;
+    public int edgeResolveIterations;
+    public float edgeDstThreshold;
 
-	public MeshFilter viewMeshFilter;
-	Mesh viewMesh;
+    public Transform Body;
+
+    public MeshFilter viewMeshFilter;
+    Mesh viewMesh;
+
+    void Awake() {
+        Body = GetComponentInParent<Transform>();
+    }
 
 	void Start() {
 		viewMesh = new Mesh ();
 		viewMesh.name = "View Mesh";
 		viewMeshFilter.mesh = viewMesh;
 
-        Body = GetComponentInParent<Transform>();
+        StartCoroutine ("FindTargetsWithDelay", Time.fixedDeltaTime);
+    }
 
-        StartCoroutine ("FindTargetsWithDelay", .2f);
-	}
+    private void OnDisable()
+    {
+        if( viewMesh != null && viewMesh.vertexCount > 0 )
+        {
+            viewMesh.Clear();
+        }
+    }
 
-
-	IEnumerator FindTargetsWithDelay(float delay) {
+    IEnumerator FindTargetsWithDelay(float delay) {
 		while (true) {
             if( enabled ) FindVisibleTargets();
             yield return new WaitForSeconds (delay);
@@ -47,6 +56,9 @@ public class FieldOfView : MonoBehaviour {
         {
             DrawFieldOfView();
         }
+        else if( viewMesh.triangles.Length > 0) {
+            viewMesh.Clear();
+        }
 	}
 
 	void FindVisibleTargets() {
@@ -55,9 +67,16 @@ public class FieldOfView : MonoBehaviour {
 
 		for (int i = 0; i < targetsInViewRadius.Length; i++) {
 			Transform target = targetsInViewRadius[i].transform.root;
+
+            if (target == Body.root.transform) {
+                continue;
+            }
+
 			Vector3 dirToTarget = (target.position - Body.position).normalized;
+
 			if (Vector3.Angle (Body.forward, dirToTarget) < viewAngle / 2) {
 				float dstToTarget = Vector3.Distance (Body.position, target.root.position);
+
 				if (!Physics.Raycast (Body.position, dirToTarget, dstToTarget, obstacleMask)) {
 					visibleTargets.Add (target);
 				}
@@ -77,10 +96,13 @@ public class FieldOfView : MonoBehaviour {
 			if (i > 0) {
 				bool edgeDstThresholdExceeded = Mathf.Abs (oldViewCast.dst - newViewCast.dst) > edgeDstThreshold;
 				if (oldViewCast.hit != newViewCast.hit || (oldViewCast.hit && newViewCast.hit && edgeDstThresholdExceeded)) {
+
 					EdgeInfo edge = FindEdge (oldViewCast, newViewCast);
+
 					if (edge.pointA != Vector3.zero) {
 						viewPoints.Add (edge.pointA);
 					}
+
 					if (edge.pointB != Vector3.zero) {
 						viewPoints.Add (edge.pointB);
 					}
@@ -95,7 +117,7 @@ public class FieldOfView : MonoBehaviour {
 
 		int vertexCount = viewPoints.Count + 1;
 		Vector3[] vertices = new Vector3[vertexCount];
-		int[] triangles = new int[(vertexCount-2) * 3];
+		int[] triangles    = new int[(vertexCount-2) * 3];
 
 		vertices [0] = Vector3.zero;
 		for (int i = 0; i < vertexCount - 1; i++) {
@@ -115,8 +137,22 @@ public class FieldOfView : MonoBehaviour {
 		viewMesh.RecalculateNormals ();
 	}
 
+    private void OnDrawGizmos()
+    {
+        if( enabled && visibleTargets.Count > 0 )
+        {
+            Gizmos.color = Color.red;
+            foreach( Transform vt in visibleTargets )
+            {
+                Gizmos.DrawRay(Body.transform.position, vt.transform.position);
+            }
 
-	EdgeInfo FindEdge(ViewCastInfo minViewCast, ViewCastInfo maxViewCast) {
+            Gizmos.color = Color.magenta;
+            Gizmos.DrawWireSphere(transform.position, viewRadius);
+        }
+    }
+
+    EdgeInfo FindEdge(ViewCastInfo minViewCast, ViewCastInfo maxViewCast) {
 		float minAngle = minViewCast.angle;
 		float maxAngle = maxViewCast.angle;
 		Vector3 minPoint = Vector3.zero;
@@ -127,6 +163,7 @@ public class FieldOfView : MonoBehaviour {
 			ViewCastInfo newViewCast = ViewCast (angle);
 
 			bool edgeDstThresholdExceeded = Mathf.Abs (minViewCast.dst - newViewCast.dst) > edgeDstThreshold;
+
 			if (newViewCast.hit == minViewCast.hit && !edgeDstThresholdExceeded) {
 				minAngle = angle;
 				minPoint = newViewCast.point;
@@ -138,7 +175,6 @@ public class FieldOfView : MonoBehaviour {
 
 		return new EdgeInfo (minPoint, maxPoint);
 	}
-
 
 	ViewCastInfo ViewCast(float globalAngle) {
 		Vector3 dir = DirFromAngle (globalAngle, true);

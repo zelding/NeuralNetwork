@@ -10,8 +10,9 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public NeuralNetwork Brain;
     public Genes Genes;
     public EightDirController Legs;
-    public SphereCollider Nose;
+    //public SphereCollider Nose;
     public FieldOfView Eye;
+    public Nostrils Nose;
     public Transform Body;
 
     [Range(500, 5000)]
@@ -33,12 +34,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     private Vector3 lastPosition;
 
-    private Quaternion lastNoseTartget;
+    public Transform lastNoseTartget;
+    public Transform eyeLastTarget;
 
     public void Awake()
     {
-        Eye = GetComponentInChildren<FieldOfView>();
-        Nose = GetComponentInChildren<SphereCollider>();
+        Eye  = GetComponentInChildren<FieldOfView>();
+        Body = GetComponent<Transform>();
+        Nose = GetComponentInChildren<Nostrils>();
     }
 
     public void InheritFrom( EntityController entity )
@@ -78,7 +81,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( !isInited )
         {
             Genes = new Genes();
-            Brain = new NeuralNetwork(new int[ 5 ] { 5, 64, 48, 64, 8 });
+            Brain = new NeuralNetwork(new int[ 5 ] { 6, 64, 48, 64, 8 });
             Legs = new EightDirController(this);
 
             Name = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
@@ -89,8 +92,10 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         Distance = 0f;
         Consumption = 0f;
 
+        Output = new float[ Brain.layers[ Brain.layers.Length - 1] ];
+
         Age = 0;
-        Energy = 1000;
+        //Energy = 1000;
 
         lastPosition = transform.position;
     }
@@ -100,25 +105,52 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     {
         if( Energy > 0 )
         {
-            float noseInput = 0f;
-            float eyeInput = 0f;
+            Vector3 noseInput = Vector3.zero;
+            Vector3 eyeInput = Vector3.zero;
 
-            if( lastNoseTartget != Quaternion.identity )
+            if( Nose.visibleTargets.Count > 1 )
             {
-                noseInput = lastNoseTartget.eulerAngles.y;
+                noseInput = (Body.transform.position - Nose.visibleTargets[ 1 ].transform.position).normalized;
+
+                foreach(Transform t in Nose.visibleTargets ) {
+                    if (t != Body) {
+                        lastNoseTartget = t;
+                        break;
+                    }
+                }               
+                //print("IS" + noseInput);
+            }
+            else {
+                lastNoseTartget = null;
             }
 
-            if( Eye.visibleTargets.Count > 0 )
+            if( Eye.visibleTargets.Count > 1 )
             {
-                eyeInput = Eye.visibleTargets[ 0 ].eulerAngles.y;
+                eyeInput = (Body.transform.position - Eye.visibleTargets[ 1 ].transform.position).normalized;
+
+                foreach( Transform t in Eye.visibleTargets )
+                {
+                    if( t != Body)
+                    {
+                        eyeLastTarget = t;
+                        break;
+                    }
+                }
+            }
+            else {
+                eyeLastTarget = null;
             }
 
-            Input = new float[ 5 ] {
-                noseInput,
-                Distance,
-                eyeInput,
-                Energy,
-                NeuralNetwork.Normalize(Age)
+            float noseTargetInput = Nose.visibleTargets.Count > 1 ? 1 :Nose.visibleTargets.Count < 1 ? -1 : 0;
+            float eyeTargetInput = Eye.visibleTargets.Count > 1 ? 1 :Eye.visibleTargets.Count == 1 ? -1 : 0;
+
+            Input = new float[ 6 ] {
+                noseTargetInput,
+                eyeTargetInput,
+                eyeInput.x,
+                eyeInput.z,
+                noseInput.x,
+                noseInput.z
             };
 
             Output = Brain.FeedForward(Input);
@@ -130,8 +162,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         }
         else
         {
-            lastNoseTartget = Quaternion.identity;
-
             if( !markedAsDead )
             {
                 Renderer r = GetComponent<Renderer>();
@@ -166,36 +196,48 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         }
     }
 
-    void OnTriggerEnter( Collider other )
-    {
-
-        if( Energy > 0 )
-        {
-            if( other.gameObject != gameObject && other.transform.root.tag == "Fish" )
-            {
-                lastNoseTartget = Quaternion.RotateTowards(transform.rotation, other.transform.rotation, 5f);
-            }
-        }
-    }
-
     void OnTriggerExit( Collider other )
     {
-        lastNoseTartget = Quaternion.identity;
     }
 
     private void FixedUpdate()
     {
-        
+        if( Energy > 0 )
+        {
+            bool yes = true;
+            
+            if( lastNoseTartget != null && Output[ 0 ] + Output[ 1 ] > 0.75f ) //Genes.smth.smth
+            {
+                Legs.MoveTowardsTarget(lastNoseTartget);
+                //Vector3 dirToTarget = (lastNoseTartget.position - Body.position).normalized;
+                //Legs.HandleInput(dirToTarget.x, dirToTarget.z);
+            }
+            else {
+                yes = false;
+            }
+
+            if( eyeLastTarget != null && Output[ 2 ] + Output[ 3 ] > 0.75f ) //Genes.smth.smth
+            {
+                Legs.MoveTowardsTarget(eyeLastTarget);
+                //Vector3 dirToTarget = (eyeLastTarget.position - Body.position).normalized;
+                //Legs.HandleInput(dirToTarget.x, dirToTarget.z);
+            }
+            else {
+                yes = false;
+            }
+
+            if ( !yes ) {
+                Legs.Nudge();
+            }
+        }
     }
 
     private void LateUpdate()
     {
         if( Energy > 0 )
         {
-            if( Legs != null && !Legs.HandleInput(Input[ 0 ], Input[ 1 ]) )
-            {
-                UseEnergy(2f);
-            }
+
+            
         }
         else
         {
@@ -212,9 +254,9 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             Gizmos.DrawRay(transform.position, transform.forward * (distance + transform.localScale.z));
 
-            if( lastNoseTartget != Quaternion.identity )
+            if( lastNoseTartget != null )
             {
-                Gizmos.DrawWireSphere(transform.position, 60);
+                //Gizmos.DrawWireSphere(transform.position, Genes.Nose.range);
             }
         }
     }
