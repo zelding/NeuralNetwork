@@ -44,27 +44,30 @@ public class Nostrils : FieldOfView
     void FindVisibleTargets()
     {
         visibleTargets.Clear();
-        Collider[] targetsInViewRadius = Physics.OverlapSphere(Body.position, 80f, targetMask);
+        Collider[] targetsInViewRadius = Physics.OverlapSphere(Body.position, range, targetMask);
 
         for( int i = 0; i < targetsInViewRadius.Length; i++ )
         {
-            Transform target = targetsInViewRadius[i].transform.root;
+            Transform target = targetsInViewRadius[i].transform;
             Vector3 dirToTarget = (target.position - Body.position).normalized;
 
-            float dstToTarget = Vector3.Distance (Body.position, target.root.position);
+            float dstToTarget = Vector3.Distance (target.position, Body.position);
 
-            if( !Physics.Raycast(Body.position, dirToTarget, dstToTarget, obstacleMask) )
+            if( dstToTarget != range ) // ?
             {
-                visibleTargets.Add(target);
+                if( !Physics.Raycast(Body.position, dirToTarget, dstToTarget, obstacleMask) )
+                {
+                    visibleTargets.Add(target);
+                }
             }
         }
     }
 
     IEnumerator FindTargetsWithDelay( float delay )
     {
-        while( true )
+        while( enabled )
         {
-            if( enabled ) FindVisibleTargets();
+            FindVisibleTargets();
             yield return new WaitForSeconds(delay);
         }
     }
@@ -75,7 +78,7 @@ public class Nostrils : FieldOfView
         {
             Gizmos.color = Color.cyan;
             foreach( Transform vt in visibleTargets ) {
-                Gizmos.DrawRay(Body.transform.position, vt.transform.position);
+                Gizmos.DrawLine(vt.transform.position, Body.transform.position);
             }
 
             Gizmos.color = Color.yellow;

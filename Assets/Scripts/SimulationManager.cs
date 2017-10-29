@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class SimulationManager : MonoBehaviour
 {
     public GameObject fishList;
+    public GameObject foodList;
 
     public LayerMask EntityLayer;
     public LayerMask ObstacleLayer;
@@ -21,11 +22,14 @@ public class SimulationManager : MonoBehaviour
 
     public Text txt_pop_size;
     public Text txt_generation;
+    public Text txt_food;
 
     private Camera currentCamera;
 
     public int startingFishes = 50;
     public GameObject fishBody;
+    public int startingfood = 50;
+    public GameObject foodBody;
 
     private ThirdPersonCameraController thirdPersonCameraController;
 
@@ -37,6 +41,7 @@ public class SimulationManager : MonoBehaviour
     private float lastCycle = 0f;
 
     public List<EntityController> Entities;
+    public List<FoodController> Food;
     public List<EntityController> WorstEntities;
     public List<EntityController> BestEntities;
     public List<EntityController> MiddleEntities;
@@ -50,6 +55,7 @@ public class SimulationManager : MonoBehaviour
 
         Generation = 1;
         Entities = new List<EntityController>();
+        Food = new List<FoodController>();
         WorstEntities = new List<EntityController>();
         BestEntities = new List<EntityController>();
         MiddleEntities = new List<EntityController>();
@@ -61,10 +67,10 @@ public class SimulationManager : MonoBehaviour
         {
             var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
-            do
+            while( IsCloseToOthers(startPosition) )
             {
                 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-            } while( IsCloseToOthers(startPosition) );
+            };
 
             GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
 
@@ -74,6 +80,16 @@ public class SimulationManager : MonoBehaviour
 
             EntityController fishController = fish.GetComponent<EntityController>();
             Entities.Add(fishController);
+        }
+
+        for (int i = 0; i < startingfood ; i++ ) {
+
+            //Vector2 startPosition =  Random.insideUnitCircle * 10;
+            var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+
+            Instantiate(foodBody, startPosition, Quaternion.identity, foodList.transform);
+
+            Food.Add(foodBody.GetComponent<FoodController>());
         }
 
         isRunning = true;
@@ -183,6 +199,7 @@ public class SimulationManager : MonoBehaviour
     {
         txt_pop_size.text = "Population: " + WorstEntities.Count + " / " + Entities.Count;
         txt_generation.text = "Generation: " + Generation;
+        txt_food.text = "Food: " + FindObjectsOfType<FoodController>().Length;
 
         if( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null )
         {
@@ -258,6 +275,7 @@ public class SimulationManager : MonoBehaviour
 
         if( SelectedEntity != null )
         {
+            SelectedEntity.Eye.allowRender = false;
             ClearSelection(true);
         }
 
@@ -273,6 +291,7 @@ public class SimulationManager : MonoBehaviour
         if( SelectedEntity.isAlive() )
         {
             m.color = Color.red;
+            SelectedEntity.Eye.allowRender = true;
         }
         else
         {
@@ -349,6 +368,7 @@ public class SimulationManager : MonoBehaviour
         }
         r.material = m;
 
+        SelectedEntity.Eye.allowRender = false;
         SelectedEntity = null;
         EntityInfoRenderer.SelectedEntity = SelectedEntity;
     }

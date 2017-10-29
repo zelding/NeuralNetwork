@@ -32,18 +32,6 @@ public class ThirdPersonCameraController : MonoBehaviour
             MoveWithTarget();
             LookAtTarget();
 
-            //Left camera pan
-            if (Input.GetKeyDown(KeyCode.Q) && !smoothRotating)
-            {
-                StartCoroutine("RotateAroundTarget", 45);
-            }
-
-            //right camera pan
-            if (Input.GetKeyDown(KeyCode.E) && !smoothRotating)
-            {
-                StartCoroutine("RotateAroundTarget", -45);
-            }
-
             if ( Input.GetKeyDown(KeyCode.Space) && !smoothRotating ) {
                 targetRotation = Quaternion.LookRotation(Target.forward);
                 Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
@@ -72,7 +60,11 @@ public class ThirdPersonCameraController : MonoBehaviour
         if (Target != null)
         {
             targetRotation = Quaternion.LookRotation(Target.position - Followingcamera.transform.position);
-            targetRotation = Quaternion.LookRotation(Target.forward);
+            //targetRotation = Quaternion.LookRotation(Target.forward);
+            Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+
+            targetRotation = Quaternion.LookRotation(Followingcamera.transform.position - Target.forward);
+
             Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
         }
     }

@@ -47,22 +47,27 @@ public class EightDirController {
 
     public void Nudge()
     {
-        body.AddForce(Vector3.forward * -velocity, ForceMode.Impulse);
+        body.AddForce(Random.onUnitSphere * velocity / 10f, ForceMode.Impulse);
+        //body.transform.Translate(Vector3.forward);
     }
 
     public void MoveTowardsTarget(Transform target)
     {
         Vector3 dirToTarget = (target.position - body.position).normalized;
 
-       // body.AddTorque(Quaternion.LookRotation(slerpToTarget, Vector3.up).eulerAngles.normalized * turnSpeed, ForceMode.Force);
+        float angle = Vector3.Angle(body.transform.forward, dirToTarget);
 
-        if( Vector3.Angle(body.transform.forward, dirToTarget) <= 270f )
+        if( angle <= 20f )
         {
-            float dstToTarget = Vector3.Distance (body.position, target.position);
+            /* float dstToTarget = Vector3.Distance (body.position, target.position);
 
-            entity.transform.LookAt(target);
+             entity.transform.LookAt(target);*/
+
+            body.transform.Rotate(Vector3.up, angle);
 
             body.AddForce(Vector3.forward * velocity, ForceMode.Force);
+
+           /* body.transform.Translate(dirToTarget * velocity / 10f);*/
             entity.UseEnergy(velocity / 10f);
         }
 
