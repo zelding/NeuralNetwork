@@ -33,8 +33,9 @@ public class EightDirController {
     {
         input = new Vector2(x, y);
 
-        if( Mathf.Abs(input.x) < 0.67f && Mathf.Abs(input.y) < 0.67f )
+        if( Mathf.Abs(input.x) < 0.1f && Mathf.Abs(input.y) < 0.1f )
         {
+            entity.Bones.velocity = Vector3.zero;
             return false;
         }
 
@@ -65,11 +66,14 @@ public class EightDirController {
 
             body.transform.Rotate(Vector3.up, angle);
 
-            body.AddForce(Vector3.forward * velocity, ForceMode.Force);
+            
 
            /* body.transform.Translate(dirToTarget * velocity / 10f);*/
-            entity.UseEnergy(velocity / 10f);
+            
         }
+
+        body.AddForce( Vector3.forward * velocity, ForceMode.Force);
+        entity.UseEnergy(velocity / 10f);
 
     }
 
@@ -92,9 +96,10 @@ public class EightDirController {
 
         targetRotation            = Quaternion.Euler(0, angle, 0);
         Quaternion rotationVector = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
-        body.AddRelativeTorque(rotationVector.eulerAngles, ForceMode.Impulse);
+        //body.AddRelativeTorque(rotationVector.eulerAngles, ForceMode.Impulse);
 
         //body.MoveRotation(rotationVector);
+        entity.transform.rotation = rotationVector;
 
         entity.UseEnergy(turnSpeed / 10f);
     }
