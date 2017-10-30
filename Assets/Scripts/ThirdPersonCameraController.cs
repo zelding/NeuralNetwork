@@ -36,6 +36,10 @@ public class ThirdPersonCameraController : MonoBehaviour
                 targetRotation = Quaternion.LookRotation(Target.forward);
                 Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
             }
+
+            if ( Input.mouseScrollDelta.magnitude != 0 ) {
+                offsetPos += new Vector3(0, Input.mouseScrollDelta.y, Input.mouseScrollDelta.y);
+            }
         }
         else
         {
@@ -47,8 +51,11 @@ public class ThirdPersonCameraController : MonoBehaviour
     {
         if (Target != null)
         {
-            targetPos = Target.position + offsetPos;
-            Followingcamera.transform.position = Vector3.Slerp(Followingcamera.transform.position, targetPos, moveSpeed * Time.deltaTime);
+            Vector3 destination = Target.rotation * offsetPos;
+
+            destination += Target.position;
+
+            Followingcamera.transform.position = destination;
         }
     }
 
@@ -59,13 +66,11 @@ public class ThirdPersonCameraController : MonoBehaviour
     {
         if (Target != null)
         {
-            targetRotation = Quaternion.LookRotation(Target.position - Followingcamera.transform.position);
-            //targetRotation = Quaternion.LookRotation(Target.forward);
-            Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+            //targetRotation = Quaternion.LookRotation(Target.position - Followingcamera.transform.position);
+            //Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
 
-            targetRotation = Quaternion.LookRotation(Followingcamera.transform.position - Target.forward);
-
-            Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+            float angle = Mathf.SmoothDampAngle(Followingcamera.transform.rotation.eulerAngles.y, Target.rotation.eulerAngles.y, ref turnSpeed, 0.3f);
+            Followingcamera.transform.rotation = Quaternion.Euler(Followingcamera.transform.rotation.x, angle, 0);
         }
     }
 

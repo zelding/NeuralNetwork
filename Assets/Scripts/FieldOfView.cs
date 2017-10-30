@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class FieldOfView : MonoBehaviour
 {
+    public Color TargetColor;
+    public Color RangeColor;
 
     public float viewRadius;
     [Range(0,360)]
@@ -30,6 +32,8 @@ public class FieldOfView : MonoBehaviour
     void Awake()
     {
         Body = GetComponentInParent<Transform>();
+        TargetColor = Color.red;
+        RangeColor = new Color(0.14f, 0.14f, 0.14f, 0.44f);
     }
 
     void Start()
@@ -43,7 +47,7 @@ public class FieldOfView : MonoBehaviour
 
     private void OnDisable()
     {
-        if( viewMesh != null && viewMesh.vertexCount > 0 )
+        if( viewMesh != null )
         {
             viewMesh.Clear();
         }
@@ -65,7 +69,7 @@ public class FieldOfView : MonoBehaviour
         {
             if( allowRender )
             {
-                DrawFieldOfView();
+               // DrawFieldOfView();
             }
         }
         else
@@ -76,9 +80,27 @@ public class FieldOfView : MonoBehaviour
             }
 
             Debug.Log("asd");
+        }
+    }
 
+    void OnDrawGizmos()
+    {
+        if( enabled && visibleTargets.Count > 0 ) {
+            Gizmos.color = TargetColor;
+            foreach( Transform vt in visibleTargets ) {
+                Gizmos.DrawLine(vt.position, Body.position);
+            }
+        }
 
-            viewMesh.Clear();
+        if (enabled) {
+            UnityEditor.Handles.color = RangeColor;
+
+            UnityEditor.Handles.DrawWireArc(Body.position, Vector3.up, Vector3.forward, 360, viewRadius);
+            Vector3 viewAngleA = DirFromAngle (-viewAngle / 2, false);
+            Vector3 viewAngleB = DirFromAngle (viewAngle / 2, false);
+
+            UnityEditor.Handles.DrawLine(transform.position, transform.position + viewAngleA * viewRadius);
+            UnityEditor.Handles.DrawLine(transform.position, transform.position + viewAngleB * viewRadius);
         }
     }
 
