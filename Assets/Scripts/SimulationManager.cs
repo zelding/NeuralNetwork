@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,12 +11,14 @@ public class SimulationManager : MonoBehaviour
     public LayerMask EntityLayer;
     public LayerMask ObstacleLayer;
 
-    public EntityController SelectedEntity { get; private set; }
+    [Header("Current Entities")]
+    public EntityController SelectedEntity;
     public EntityController HoveredEntity;
 
-    public EntityInfoRenderer EntityInfoRenderer;
-    public EntityInfoRenderer BestEntityInfoRenderer;
-    public EntityInfoRenderer WorstEntityInfoRenderer;
+    [Header("Entity info renderers")]
+    private EntityInfoRenderer EntityInfoRenderer;
+    private EntityInfoRenderer BestEntityInfoRenderer;
+    private EntityInfoRenderer WorstEntityInfoRenderer;
 
     public Camera TopDownCamera;
     public Camera FollowingCamera;
@@ -26,8 +29,10 @@ public class SimulationManager : MonoBehaviour
 
     private Camera currentCamera;
 
+    [Range(0, 100)]
     public int startingFishes = 50;
     public GameObject fishBody;
+    [Range(0, 100)]
     public int startingfood = 50;
     public GameObject foodBody;
 
@@ -45,6 +50,21 @@ public class SimulationManager : MonoBehaviour
     public List<EntityController> WorstEntities;
     public List<EntityController> BestEntities;
     public List<EntityController> MiddleEntities;
+
+    private void Awake()
+    {
+        EntityInfoRenderer[] rr = FindObjectsOfType<EntityInfoRenderer>();
+
+        if (rr.Length > 2) {
+            EntityInfoRenderer = rr[ 0 ];
+            BestEntityInfoRenderer = rr[ 1 ];
+            WorstEntityInfoRenderer= rr[ 2 ];
+        }
+        else {
+            BestEntityInfoRenderer = rr[ rr.Length - 1 ];
+            EntityInfoRenderer = rr[ 0 ];
+        }
+    }
 
     // Use this for initialization
     void Start()
@@ -192,6 +212,17 @@ public class SimulationManager : MonoBehaviour
         Entities.Clear();
         Entities = nextGeneration;
 
+        for( int i = 0; i < 5; i++ )
+        {
+
+            //Vector2 startPosition =  Random.insideUnitCircle * 10;
+            var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+
+            Instantiate(foodBody, startPosition, Quaternion.identity, foodList.transform);
+
+            Food.Add(foodBody.GetComponent<FoodController>());
+        }
+
         isRunning = true;
     }
 
@@ -199,7 +230,7 @@ public class SimulationManager : MonoBehaviour
     {
         txt_pop_size.text = "Population: " + WorstEntities.Count + " / " + Entities.Count;
         txt_generation.text = "Generation: " + Generation;
-        txt_food.text = "Food: " + FindObjectsOfType<FoodController>().Length;
+        txt_food.text = "Food: " + Food.Count;
 
         if( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null )
         {
@@ -275,7 +306,6 @@ public class SimulationManager : MonoBehaviour
 
         if( SelectedEntity != null )
         {
-            SelectedEntity.Eye.allowRender = false;
             ClearSelection(true);
         }
 
