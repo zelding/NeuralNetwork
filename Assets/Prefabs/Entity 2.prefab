@@ -98,15 +98,15 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1796607261820328}
-  m_LocalRotation: {x: 0, y: 0.51399046, z: 0, w: 0.8577959}
-  m_LocalPosition: {x: 133.3, y: 1.5, z: -189.5}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: -189.4}
   m_LocalScale: {x: 10, y: 1, z: 10}
   m_Children:
   - {fileID: 4240398417289788}
   - {fileID: 4101319091172816}
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 61.86, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &23267153233193212
 MeshRenderer:
   m_ObjectHideFlags: 1
@@ -198,7 +198,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 1
-  m_Constraints: 84
+  m_Constraints: 4
   m_CollisionDetection: 2
 --- !u!65 &65194524568214716
 BoxCollider:
@@ -206,12 +206,12 @@ BoxCollider:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1796607261820328}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 9b55675943f8080439a00f8e2afe2e6f, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1.5, y: 3, z: 1.5}
-  m_Center: {x: 0, y: 1, z: 0}
+  m_Size: {x: 1.5, y: 1, z: 1.5}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &114328730693821556
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -223,6 +223,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edfc309fa89f0854eaff1f1c640000e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetColor: {r: 0.84852654, g: 0.08564016, b: 0.9705882, a: 0}
+  RangeColor: {r: 0.10218424, g: 0.2443026, b: 0.9264706, a: 0}
   viewRadius: 100
   viewAngle: 120
   targetMask:
@@ -231,10 +233,11 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 768
+  allowRender: 1
   visibleTargets: []
-  meshResolution: 2
-  edgeResolveIterations: 4
-  edgeDstThreshold: 0.5
+  meshResolution: 15
+  edgeResolveIterations: 6
+  edgeDstThreshold: 0.2
   Body: {fileID: 0}
   viewMeshFilter: {fileID: 33334124953708378}
 --- !u!114 &114659000452761612
@@ -255,10 +258,12 @@ MonoBehaviour:
   Eye: {fileID: 0}
   Nose: {fileID: 0}
   Body: {fileID: 0}
-  Energy: 943
+  Bones: {fileID: 0}
+  Immortal: 0
+  Energy: 500
   NeuStr: '|4|'
   lastNoseTartget: {fileID: 0}
-  eyeLastTarget: {fileID: 0}
+  lastEyeTarget: {fileID: 0}
 --- !u!114 &114761936724452578
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -270,6 +275,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48c4d076a0f540c4cb6ee858680e4f28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetColor: {r: 0.9338235, g: 0.876525, b: 0.10299523, a: 0}
+  RangeColor: {r: 0.9705882, g: 0.653, b: 0.2926038, a: 0}
   viewRadius: 60
   viewAngle: 360
   targetMask:
@@ -278,10 +285,11 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 256
+  allowRender: 1
   visibleTargets: []
   meshResolution: 0
-  edgeResolveIterations: 0
-  edgeDstThreshold: 0
+  edgeResolveIterations: 2
+  edgeDstThreshold: 0.7
   Body: {fileID: 0}
   viewMeshFilter: {fileID: 0}
 --- !u!135 &135940625723294236

@@ -98,7 +98,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 4
-  m_CollisionDetection: 1
+  m_CollisionDetection: 2
 --- !u!114 &114173241028366258
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -110,14 +110,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc5a4c4c7da1e4545a10100e98685e83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StandardMaxRadius: 30
-  MaxRadius: 30
-  closeRange: 10
-  veryCloseRange: 5
+  StandardMaxRadius: 5
+  MaxRadius: 10
+  closeRange: 4
+  veryCloseRange: 2
   foodMask:
     serializedVersion: 2
     m_Bits: 2048
-  Frequency: 1
+  EnableBubleing: 1
+  Frequency: 3
   Nearby: 0
   Close: 0
   stench: {fileID: 0}
@@ -139,7 +140,7 @@ SphereCollider:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1754053334894224}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 1f1b84c6447a39344bf8df8e7c7faa3c, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2

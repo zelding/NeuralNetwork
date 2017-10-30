@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,8 +14,12 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public FieldOfView Eye;
     public Nostrils Nose;
     public Transform Body;
+    public Rigidbody Bones;
 
-    [Range(500, 5000)]
+    [Header("Hmmmmmm")]
+    public bool Immortal = false;
+
+    [Range(500f, 5000f)]
     public float Energy;
 
     public float[] Output { get; private set; }
@@ -35,14 +39,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private Vector3 lastPosition;
 
     public Transform lastNoseTartget;
-    public Transform eyeLastTarget;
+    public Transform lastEyeTarget;
 
     public void Awake()
     {
         Eye  = GetComponentInChildren<FieldOfView>();
         Body = GetComponent<Transform>();
         Nose = GetComponentInChildren<Nostrils>();
-
+        Bones = GetComponent<Rigidbody>();
     }
 
     public void InheritFrom( EntityController entity )
@@ -68,12 +72,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             Name = Name.Contains("X-") ? Name.Replace("X-", "") : "X-" + Name;
         }
 
+        Immortal = entity.Immortal;
+
         isInited = true;
     }
 
     public bool isAlive()
     {
-        return !markedAsDead || Energy > 0;
+        return Immortal || ( !markedAsDead || Energy > 0 ); // yes
     }
 
     // Use this for initialization
@@ -104,56 +110,41 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     // Update is called once per frame
     void Update()
     {
-        if( Energy > 0 )
+        if( enabled && ( Immortal || Energy > 0 ) ) // marked as dead doesn't matter around here
         {
             Vector3 noseInput = Vector3.zero;
             Vector3 eyeInput = Vector3.zero;
 
-            if( Nose.visibleTargets.Count > 1 )
-            {
+            if( Nose.visibleTargets.Count > 0 ) {
                 foreach(Transform t in Nose.visibleTargets ) {
                     if (t != Body) {
                         lastNoseTartget = t;
                         break;
                     }
                 }
-
-                //noseInput = (Body.transform.position - lastNoseTartget.transform.position).normalized;
-                //print("IS" + noseInput);
             }
-            else {
-            //    lastNoseTartget = null;
+
+            if( Eye.visibleTargets.Count > 0 ) {
+                foreach( Transform t in Eye.visibleTargets ) {
+                    if( t != Body) {
+                        lastEyeTarget = t;
+                        break;
+                    }
+                }
+            }
+
+            if( lastEyeTarget != null )
+            {
+                eyeInput = (lastEyeTarget.transform.position - Body.transform.position);
             }
 
             if( lastNoseTartget != null )
             {
-                noseInput = (Body.transform.position - lastNoseTartget.transform.position).normalized;
+                noseInput = (lastNoseTartget.transform.position - Body.transform.position);
             }
 
-            if( Eye.visibleTargets.Count > 1 )
-            {
-                foreach( Transform t in Eye.visibleTargets )
-                {
-                    if( t != Body)
-                    {
-                        eyeLastTarget = t;
-                        break;
-                    }
-                }
-
-                //eyeInput = (Body.transform.position - eyeLastTarget.transform.position).normalized;
-            }
-            else {
-                //eyeLastTarget = null;
-            }
-
-            if( eyeLastTarget != null )
-            {
-                eyeInput = (Body.transform.position - eyeLastTarget.transform.position).normalized;
-            }
-
-            float noseTargetInput = Nose.visibleTargets.Count > 1 ? 1 :Nose.visibleTargets.Count < 1 ? -1 : 0;
-            float eyeTargetInput = Eye.visibleTargets.Count > 1 ? 1 :Eye.visibleTargets.Count == 1 ? -1 : 0;
+            float noseTargetInput = Nose.visibleTargets.Count -1;
+            float eyeTargetInput = Eye.visibleTargets.Count -1;
 
             Input = new float[ 6 ] {
                 noseTargetInput,
@@ -166,18 +157,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             Output = Brain.FeedForward(Input);
 
-            if( !Eye.enabled )
-            {
-                Eye.enabled = true;
-            }
-
-            if( !Nose.enabled )
-            {
-                Nose.enabled = true;
-            }
-
             Age += Time.deltaTime;
-            Energy -= Mathf.Abs(Time.deltaTime);
+            UseEnergy(Time.deltaTime);
             Distance += Vector3.Distance(lastPosition, transform.position);
             lastPosition = transform.position;
         }
@@ -203,6 +184,15 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 Nose.enabled = false;
             }
         }
+
+        if ( lastNoseTartget != null && Nose.visibleTargets.Count == 0 ) {
+            lastNoseTartget = null;
+        }
+
+        if( lastEyeTarget != null && Eye.visibleTargets.Count == 0 )
+        {
+            lastEyeTarget = null;
+        }
     }
 
     void OnCollisionEnter( Collision collision )
@@ -219,7 +209,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
                     otherFish.enabled = false;
                     otherFish.eaten = true;
-                    Energy += 100;
+                    GainEnergy(100);
                     Consumption += 10;
                 }
             }
@@ -232,11 +222,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 {
                     //Debug.Log(Name + " ate a food");
 
-                    Energy += 10;
+                    GainEnergy(10);
                     Consumption += 1;
 
                     food.enabled = false;
-                    Destroy(food);
+                    Destroy(food.gameObject);
                 }
             }
         }
@@ -248,30 +238,35 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         {
             bool yes = true;
             
-            if( lastNoseTartget != null && Output[ 0 ] + Output[ 1 ] > 0.75f ) //Genes.smth.smth
+            if( lastNoseTartget != null && (Mathf.Abs(Output[ 0 ]) > 0 || Mathf.Abs(Output[ 1 ]) > 0) ) //Genes.smth.smth
             {
-                Legs.MoveTowardsTarget(lastNoseTartget);
+                //Legs.MoveTowardsTarget(lastNoseTartget);
                 //Vector3 dirToTarget = (lastNoseTartget.position - Body.position).normalized;
-                //Legs.HandleInput(dirToTarget.x, dirToTarget.z);
+                //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
+                Legs.BabySteps(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
             }
             else {
                 yes = false;
             }
 
-            if( eyeLastTarget != null && Output[ 2 ] + Output[ 3 ] > 0.75f ) //Genes.smth.smth
+            if( lastEyeTarget != null && (Mathf.Abs(Output[ 2 ]) > 0 || Mathf.Abs(Output[ 3 ]) > 0) ) //Genes.smth.smth
             {
-                Legs.MoveTowardsTarget(eyeLastTarget);
+                //Legs.MoveTowardsTarget(eyeLastTarget);
                 //Vector3 dirToTarget = (eyeLastTarget.position - Body.position).normalized;
                 //Legs.HandleInput(dirToTarget.x, dirToTarget.z);
+                //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
+                Legs.BabySteps(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
             }
             else {
                 yes = false;
             }
 
             if ( !yes ) {
-                Legs.Nudge();
-                UseEnergy(0.1f);
+                
             }
+
+            //Legs.HandleInput(0, 1);
+            UseEnergy(0.3f);
         }
     }
 
@@ -279,27 +274,41 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     {
         if( Energy > 0 )
         {
-            float distance = 5.00f;
+            float distance = 10.00f;
 
+            Gizmos.color = Color.white;
             Gizmos.DrawRay(transform.position, transform.forward * (distance + transform.localScale.z));
 
             if( lastNoseTartget != null )
             {
-               // Gizmos.color = Color.red;
-               // Gizmos.DrawLine(transform.position, lastNoseTartget.position);
+                Gizmos.color = Color.red;//new Color(0.5f, 1, 0, 1f);
+                Gizmos.DrawLine(lastNoseTartget.position, transform.position);
             }
 
-            if( eyeLastTarget != null )
+            if( lastEyeTarget != null )
             {
-               // Gizmos.color = Color.green;
-               // Gizmos.DrawLine(transform.position, eyeLastTarget.position);
+                Gizmos.color = Color.yellow;//new Color(1, 0.5f, 0, 1f);
+                Gizmos.DrawLine(lastEyeTarget.position, transform.position);
             }
         }
     }
 
     public void UseEnergy( float amount )
     {
+        if (Immortal) {
+            return;
+        }
+
         Energy -= Mathf.Abs(amount);
+    }
+
+    public void GainEnergy(float amount) {
+        if( Immortal )
+        {
+            return;
+        }
+
+        Energy += Mathf.Abs(amount);
     }
 
     #region ICopmare

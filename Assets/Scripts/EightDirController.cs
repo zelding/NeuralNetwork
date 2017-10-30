@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿﻿using UnityEngine;
 
 /// <summary>
 /// 1. 8 dir movement
@@ -16,25 +16,28 @@ public class EightDirController {
     private EntityController entity;
     private Rigidbody body;
 
+    Vector3 currentVelocity;
+
     private Vector2 input;
     private float angle;
     private Quaternion targetRotation;
 
-    public EightDirController(EntityController entity, Camera camera = null)
+    public EightDirController( EntityController entity, Camera camera = null )
     {
-        this.entity     = entity;
+        this.entity = entity;
         body = entity.GetComponentInChildren<Rigidbody>();
 
-        velocity  = entity.Genes.Legs.speed;
+        velocity = entity.Genes.Legs.speed;
         turnSpeed = entity.Genes.Legs.turnSpeed;
     }
 
-    public bool HandleInput(float x, float y)
+    public bool HandleInput( float x, float y )
     {
         input = new Vector2(x, y);
 
-        if( Mathf.Abs(input.x) < 0.67f && Mathf.Abs(input.y) < 0.67f )
+        if( Mathf.Abs(input.x) < 0.1f && Mathf.Abs(input.y) < 0.1f )
         {
+            entity.Bones.velocity = Vector3.zero;
             return false;
         }
 
@@ -51,7 +54,7 @@ public class EightDirController {
         //body.transform.Translate(Vector3.forward);
     }
 
-    public void MoveTowardsTarget(Transform target)
+    public void MoveTowardsTarget( Transform target )
     {
         Vector3 dirToTarget = (target.position - body.position).normalized;
 
@@ -65,12 +68,24 @@ public class EightDirController {
 
             body.transform.Rotate(Vector3.up, angle);
 
-            body.AddForce(Vector3.forward * velocity, ForceMode.Force);
 
-           /* body.transform.Translate(dirToTarget * velocity / 10f);*/
-            entity.UseEnergy(velocity / 10f);
+
+            /* body.transform.Translate(dirToTarget * velocity / 10f);*/
+
         }
 
+        body.AddForce(Vector3.forward * velocity, ForceMode.Force);
+        entity.UseEnergy(velocity / 10f);
+
+    }
+
+    public void BabySteps(float x, float y)
+    {
+        Vector3 mousePos = new Vector3(x, 0, y).normalized;
+        entity.transform.LookAt(mousePos + Vector3.up * entity.transform.position.y);
+        currentVelocity = new Vector3(x, 0, y).normalized * velocity;
+
+        body.MovePosition(entity.transform.position + currentVelocity * Time.fixedDeltaTime);
     }
 
     /// <summary>
@@ -92,9 +107,10 @@ public class EightDirController {
 
         targetRotation            = Quaternion.Euler(0, angle, 0);
         Quaternion rotationVector = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
-        body.AddRelativeTorque(rotationVector.eulerAngles, ForceMode.Impulse);
+        //body.AddRelativeTorque(rotationVector.eulerAngles, ForceMode.Impulse);
 
         //body.MoveRotation(rotationVector);
+        entity.transform.rotation = rotationVector;
 
         entity.UseEnergy(turnSpeed / 10f);
     }

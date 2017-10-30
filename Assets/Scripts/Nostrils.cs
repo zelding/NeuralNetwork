@@ -1,10 +1,32 @@
-﻿using UnityEngine;
+﻿﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(SphereCollider))]
-public class Nostrils : FieldOfView
+public class Nostrils : MonoBehaviour
 {
+    public Color TargetColor;
+    public Color RangeColor;
+
+    public float viewRadius;
+    [Range(0,360)]
+    public float viewAngle;
+
+    public LayerMask targetMask;
+    public LayerMask obstacleMask;
+
+    public bool allowRender;
+
+    public List<Transform> visibleTargets = new List<Transform>();
+
+    public float meshResolution = 10f;
+    public int edgeResolveIterations = 4;
+    public float edgeDstThreshold = 0.67f;
+
+    public Transform Body;
+
+    public MeshFilter viewMeshFilter;
+
     //--------------------------------//
 
     SphereCollider Sphere;
@@ -18,6 +40,9 @@ public class Nostrils : FieldOfView
     {
         Sphere = GetComponent<SphereCollider>();
         Body   = GetComponentInParent<Transform>();
+
+        TargetColor = Color.cyan;
+        RangeColor = new Color(0, 0.6f, 0.6f, 0.6f);
     }
 
     private void Start()
@@ -32,19 +57,25 @@ public class Nostrils : FieldOfView
         }
     }
 
-    void LateUpdate()
+    void OnDrawGizmos()
     {
-
-        if( enabled )
+        /*if( enabled && visibleTargets.Count > 0 )
         {
+            Gizmos.color = TargetColor;
+            foreach( Transform vt in visibleTargets )
+            {
+                Gizmos.DrawLine(vt.position, Body.position);
+            }
 
-        }
+            Gizmos.color = RangeColor;
+            Gizmos.DrawWireSphere(transform.position, viewRadius);
+        }*/
     }
 
     void FindVisibleTargets()
     {
         visibleTargets.Clear();
-        Collider[] targetsInViewRadius = Physics.OverlapSphere(Body.position, range, targetMask);
+        Collider[] targetsInViewRadius = Physics.OverlapSphere(Body.position, viewRadius, targetMask);
 
         for( int i = 0; i < targetsInViewRadius.Length; i++ )
         {
@@ -53,7 +84,7 @@ public class Nostrils : FieldOfView
 
             float dstToTarget = Vector3.Distance (target.position, Body.position);
 
-            if( dstToTarget != range ) // ?
+            if( dstToTarget <= viewRadius ) // ?
             {
                 if( !Physics.Raycast(Body.position, dirToTarget, dstToTarget, obstacleMask) )
                 {
@@ -69,20 +100,6 @@ public class Nostrils : FieldOfView
         {
             FindVisibleTargets();
             yield return new WaitForSeconds(delay);
-        }
-    }
-
-    private void OnDrawGizmos()
-    {
-        if( enabled && visibleTargets.Count > 0 )
-        {
-            Gizmos.color = Color.cyan;
-            foreach( Transform vt in visibleTargets ) {
-                Gizmos.DrawLine(vt.transform.position, Body.transform.position);
-            }
-
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position, range);
         }
     }
 }

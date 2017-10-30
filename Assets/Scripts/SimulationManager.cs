@@ -292,6 +292,7 @@ public class SimulationManager : MonoBehaviour
         {
             m.color = Color.red;
             SelectedEntity.Eye.allowRender = true;
+            Debug.Log("Enabled " + SelectedEntity.Name);
         }
         else
         {
@@ -353,6 +354,9 @@ public class SimulationManager : MonoBehaviour
         {
             thirdPersonCameraController.enabled = false;
             thirdPersonCameraController.Target = null;
+
+            Debug.Log("Disabled " + SelectedEntity.Name);
+            SelectedEntity.Eye.allowRender = false;
         }
 
         Renderer r = SelectedEntity.GetComponent<Renderer>();
@@ -368,7 +372,6 @@ public class SimulationManager : MonoBehaviour
         }
         r.material = m;
 
-        SelectedEntity.Eye.allowRender = false;
         SelectedEntity = null;
         EntityInfoRenderer.SelectedEntity = SelectedEntity;
     }

@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
 public class FieldOfView : MonoBehaviour
 {
+    public Color TargetColor;
+    public Color RangeColor;
 
     public float viewRadius;
     [Range(0,360)]
@@ -12,13 +14,13 @@ public class FieldOfView : MonoBehaviour
     public LayerMask targetMask;
     public LayerMask obstacleMask;
 
-    public bool allowRender = false;
+    public bool allowRender;
 
     public List<Transform> visibleTargets = new List<Transform>();
 
-    public float meshResolution;
-    public int edgeResolveIterations;
-    public float edgeDstThreshold;
+    public float meshResolution = 10f;
+    public int edgeResolveIterations = 4;
+    public float edgeDstThreshold = 0.67f;
 
     public Transform Body;
 
@@ -29,7 +31,12 @@ public class FieldOfView : MonoBehaviour
 
     void Awake()
     {
+        meshResolution = 10f;
+        edgeResolveIterations = 4;
+        edgeDstThreshold = 0.67f;
+
         Body = GetComponentInParent<Transform>();
+        viewMeshFilter = GetComponent<MeshFilter>();
     }
 
     void Start()
@@ -38,15 +45,7 @@ public class FieldOfView : MonoBehaviour
         viewMesh.name = "View Mesh";
         viewMeshFilter.mesh = viewMesh;
 
-        scanning = StartCoroutine("FindTargetsWithDelay", Time.fixedDeltaTime);
-    }
-
-    private void OnDisable()
-    {
-        if( viewMesh != null && viewMesh.vertexCount > 0 )
-        {
-            viewMesh.Clear();
-        }
+        scanning = StartCoroutine("FindTargetsWithDelay", 0.25f);
     }
 
     IEnumerator FindTargetsWithDelay( float delay )
@@ -60,12 +59,11 @@ public class FieldOfView : MonoBehaviour
 
     void LateUpdate()
     {
-
         if( enabled )
         {
-            if( allowRender )
+            if( allowRender && viewMesh != null )
             {
-                DrawFieldOfView();
+               DrawFieldOfView();
             }
         }
         else
@@ -75,10 +73,32 @@ public class FieldOfView : MonoBehaviour
                 StopCoroutine(scanning);
             }
 
-            Debug.Log("asd");
+            if( viewMesh != null )
+            {
+                viewMesh.Clear();
+            }
+        }
+    }
 
+    void OnDrawGizmos()
+    {
+        if( enabled && visibleTargets.Count > 0 ) {
+            Gizmos.color = TargetColor;
+            foreach( Transform vt in visibleTargets ) {
+                Gizmos.DrawLine(vt.position, Body.position);
+            }
+        }
 
-            viewMesh.Clear();
+        if ( enabled ) {
+            Gizmos.color = RangeColor;
+
+            Gizmos.DrawWireSphere(Body.position, viewRadius);
+
+            if( visibleTargets.Count > 0 ) {
+                foreach(Transform vt in visibleTargets) {
+                    Gizmos.DrawRay(Body.position, Body.position + (vt.position - Body.position));
+                }
+            }
         }
     }
 
@@ -89,9 +109,9 @@ public class FieldOfView : MonoBehaviour
 
         for( int i = 0; i < targetsInViewRadius.Length; i++ )
         {
-            Transform target = targetsInViewRadius[i].transform.root;
+            Transform target = targetsInViewRadius[i].transform;
 
-            if( target == Body.root.transform )
+            if( target == Body )
             {
                 continue;
             }
@@ -100,7 +120,7 @@ public class FieldOfView : MonoBehaviour
 
             if( Vector3.Angle(Body.forward, dirToTarget) < viewAngle / 2 )
             {
-                float dstToTarget = Vector3.Distance (Body.position, target.root.position);
+                float dstToTarget = Vector3.Distance (Body.position, target.position);
 
                 if( !Physics.Raycast(Body.position, dirToTarget, dstToTarget, obstacleMask) )
                 {
