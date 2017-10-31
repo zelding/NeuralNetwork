@@ -93,7 +93,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( !isInited )
         {
             Genes = new Genes();
-            Brain = new NeuralNetwork(new int[ 4 ] { 6, 32, 32, 8 });
+            Brain = new NeuralNetwork(new int[ 4 ] { 7, 32, 32, 8 });
             Legs = new EightDirController(this);
 
             Name = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
@@ -151,13 +151,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             float noseTargetInput = Nose.visibleTargets.Count -1;
             float eyeTargetInput = Eye.visibleTargets.Count -1;
 
-            Input = new float[ 6 ] {
+            Input = new float[ 7 ] {
                 noseTargetInput,
                 eyeTargetInput,
                 eyeInput.x,
                 eyeInput.z,
                 noseInput.x,
-                noseInput.z
+                noseInput.z,
+                Energy
             };
 
             Output = Brain.FeedForward(Input);
@@ -242,8 +243,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     {
         if( Energy > 0 )
         {
-            bool yes = true;
-
             if( Output[ 4 ] > Output[ 5 ] )
             {
                 if( lastNoseTartget != null && (Mathf.Abs(Output[ 0 ]) > 0 || Mathf.Abs(Output[ 1 ]) > 0) ) //Genes.smth.smth
@@ -251,11 +250,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                     //Legs.MoveTowardsTarget(lastNoseTartget);
                     //Vector3 dirToTarget = (lastNoseTartget.position - Body.position).normalized;
                     //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
-                    Legs.BabySteps(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
-                }
-                else
-                {
-                    yes = false;
+                    Legs.BabySteps(NeuralNetwork.Normalize(Output[ 0 ]) * 2, NeuralNetwork.Normalize(Output[ 1 ]) * 2);
                 }
             }
             else
@@ -266,20 +261,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                     //Vector3 dirToTarget = (eyeLastTarget.position - Body.position).normalized;
                     //Legs.HandleInput(dirToTarget.x, dirToTarget.z);
                     //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
-                    Legs.BabySteps(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
-                }
-                else
-                {
-                    yes = false;
-                }
-
-                if( !yes )
-                {
-
+                    Legs.BabySteps(NeuralNetwork.Normalize(Output[ 2 ]) * 2, NeuralNetwork.Normalize(Output[ 3 ]) * 2);
                 }
             }
-            //Legs.HandleInput(0, 1);
-            UseEnergy(0.3f);
+
+            if (lastPosition == transform.position)
+            {
+                UseEnergy(2.67f);
+            }
         }
     }
 

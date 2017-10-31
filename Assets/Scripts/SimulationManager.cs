@@ -194,6 +194,7 @@ public class SimulationManager : MonoBehaviour
         {
             Destroy(entity.gameObject);
         }
+
         Entities.Clear();
         Entities = nextGeneration;
 

@@ -270,6 +270,6 @@ public class NeuralNetwork
 
     public static float Normalize( float value )
     {
-        return 1.0f / (1.0f + Mathf.Pow(Mathf.Exp(1), -value)) - 0.5f;
+        return (1.0f / (1.0f + Mathf.Pow(Mathf.Exp(1), -value)) - 0.5f) * 2;
     }
 }

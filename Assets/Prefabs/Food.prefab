@@ -54,6 +54,7 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -69,6 +70,7 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -112,13 +114,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StandardMaxRadius: 5
   MaxRadius: 10
-  closeRange: 4
-  veryCloseRange: 2
+  closeRange: 7
+  veryCloseRange: 4
   foodMask:
     serializedVersion: 2
     m_Bits: 2048
   EnableBubleing: 1
-  Frequency: 3
+  Frequency: 1.5
   Nearby: 0
   Close: 0
   stench: {fileID: 0}
