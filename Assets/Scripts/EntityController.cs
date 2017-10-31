@@ -59,7 +59,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
         if( Genes.isMutated )
         {
-            Name = Name + Collections.Names[ Random.Range(0, Collections.Names.Count) ][ 0 ];
+            Name = Name + Collections.Names[ Random.Range(0, Collections.Names.Count) ][ 0 ] + " ";
         }
         
         if( Brain.isMutated )
@@ -82,13 +82,18 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         return Immortal || ( !markedAsDead || Energy > 0 ); // yes
     }
 
+    private void OnDisable()
+    {
+        DisableEyeLashes();
+    }
+
     // Use this for initialization
     void Start()
     {
         if( !isInited )
         {
             Genes = new Genes();
-            Brain = new NeuralNetwork(new int[ 5 ] { 6, 64, 48, 64, 8 });
+            Brain = new NeuralNetwork(new int[ 4 ] { 6, 32, 32, 8 });
             Legs = new EightDirController(this);
 
             Name = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
@@ -209,7 +214,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
                     otherFish.enabled = false;
                     otherFish.eaten = true;
-                    GainEnergy(100);
+                    GainEnergy(200);
                     Consumption += 10;
                 }
             }
@@ -222,10 +227,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 {
                     //Debug.Log(Name + " ate a food");
 
-                    GainEnergy(10);
+                    GainEnergy(50);
                     Consumption += 1;
 
                     food.enabled = false;
+                    Destroy(food);
                     Destroy(food.gameObject);
                 }
             }
@@ -237,34 +243,41 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( Energy > 0 )
         {
             bool yes = true;
-            
-            if( lastNoseTartget != null && (Mathf.Abs(Output[ 0 ]) > 0 || Mathf.Abs(Output[ 1 ]) > 0) ) //Genes.smth.smth
+
+            if( Output[ 4 ] > Output[ 5 ] )
             {
-                //Legs.MoveTowardsTarget(lastNoseTartget);
-                //Vector3 dirToTarget = (lastNoseTartget.position - Body.position).normalized;
-                //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
-                Legs.BabySteps(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
+                if( lastNoseTartget != null && (Mathf.Abs(Output[ 0 ]) > 0 || Mathf.Abs(Output[ 1 ]) > 0) ) //Genes.smth.smth
+                {
+                    //Legs.MoveTowardsTarget(lastNoseTartget);
+                    //Vector3 dirToTarget = (lastNoseTartget.position - Body.position).normalized;
+                    //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
+                    Legs.BabySteps(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
+                }
+                else
+                {
+                    yes = false;
+                }
             }
-            else {
-                yes = false;
-            }
-
-            if( lastEyeTarget != null && (Mathf.Abs(Output[ 2 ]) > 0 || Mathf.Abs(Output[ 3 ]) > 0) ) //Genes.smth.smth
+            else
             {
-                //Legs.MoveTowardsTarget(eyeLastTarget);
-                //Vector3 dirToTarget = (eyeLastTarget.position - Body.position).normalized;
-                //Legs.HandleInput(dirToTarget.x, dirToTarget.z);
-                //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
-                Legs.BabySteps(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
-            }
-            else {
-                yes = false;
-            }
+                if( lastEyeTarget != null && (Mathf.Abs(Output[ 2 ]) > 0 || Mathf.Abs(Output[ 3 ]) > 0) ) //Genes.smth.smth
+                {
+                    //Legs.MoveTowardsTarget(eyeLastTarget);
+                    //Vector3 dirToTarget = (eyeLastTarget.position - Body.position).normalized;
+                    //Legs.HandleInput(dirToTarget.x, dirToTarget.z);
+                    //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
+                    Legs.BabySteps(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
+                }
+                else
+                {
+                    yes = false;
+                }
 
-            if ( !yes ) {
-                
-            }
+                if( !yes )
+                {
 
+                }
+            }
             //Legs.HandleInput(0, 1);
             UseEnergy(0.3f);
         }
@@ -281,14 +294,38 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             if( lastNoseTartget != null )
             {
-                Gizmos.color = Color.red;//new Color(0.5f, 1, 0, 1f);
-                Gizmos.DrawLine(lastNoseTartget.position, transform.position);
+                Gizmos.color = Color.red;
+                //Gizmos.DrawLine(lastNoseTartget.position, transform.position);
+                Gizmos.DrawWireSphere(lastNoseTartget.position, 4f);
+            }
+
+            if( Nose.enabled && Nose.visibleTargets.Count > 0 )
+            {
+                foreach( Transform vt in Nose.visibleTargets )
+                {
+                    if( vt != null )
+                    {
+                        Gizmos.DrawLine(vt.position, transform.position);
+                    }
+                }
             }
 
             if( lastEyeTarget != null )
             {
-                Gizmos.color = Color.yellow;//new Color(1, 0.5f, 0, 1f);
-                Gizmos.DrawLine(lastEyeTarget.position, transform.position);
+                Gizmos.color = Color.yellow;
+                //Gizmos.DrawLine(lastEyeTarget.position, transform.position);
+                Gizmos.DrawWireSphere(lastEyeTarget.position, 13f);
+            }
+
+            if( Eye.enabled && Eye.visibleTargets.Count > 0 )
+            {
+                foreach( Transform vt in Eye.visibleTargets )
+                {
+                    if( vt != null )
+                    {
+                        Gizmos.DrawLine(vt.position, transform.position);
+                    }
+                }
             }
         }
     }
@@ -309,6 +346,16 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         }
 
         Energy += Mathf.Abs(amount);
+    }
+
+    public void EnableEyeLashes()
+    {
+        Eye.allowRender = true;
+    }
+
+    public void DisableEyeLashes()
+    {
+        Eye.allowRender = false;
     }
 
     #region ICopmare

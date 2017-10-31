@@ -2,12 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(SphereCollider))]
 public class Nostrils : MonoBehaviour
 {
-    public Color TargetColor;
-    public Color RangeColor;
-
     public float viewRadius;
     [Range(0,360)]
     public float viewAngle;
@@ -19,18 +15,9 @@ public class Nostrils : MonoBehaviour
 
     public List<Transform> visibleTargets = new List<Transform>();
 
-    public float meshResolution = 10f;
-    public int edgeResolveIterations = 4;
-    public float edgeDstThreshold = 0.67f;
-
     public Transform Body;
 
-    public MeshFilter viewMeshFilter;
-
-    //--------------------------------//
-
-    SphereCollider Sphere;
-    Genes.AMutateable Chromosome;
+    Genes.Movement Chromosome;
 
     float range;
     float resolution;
@@ -38,11 +25,7 @@ public class Nostrils : MonoBehaviour
 
     private void Awake()
     {
-        Sphere = GetComponent<SphereCollider>();
         Body   = GetComponentInParent<Transform>();
-
-        TargetColor = Color.cyan;
-        RangeColor = new Color(0, 0.6f, 0.6f, 0.6f);
     }
 
     private void Start()
@@ -55,21 +38,6 @@ public class Nostrils : MonoBehaviour
         {
             StartCoroutine("FindTargetsWithDelay", Time.fixedDeltaTime);
         }
-    }
-
-    void OnDrawGizmos()
-    {
-        /*if( enabled && visibleTargets.Count > 0 )
-        {
-            Gizmos.color = TargetColor;
-            foreach( Transform vt in visibleTargets )
-            {
-                Gizmos.DrawLine(vt.position, Body.position);
-            }
-
-            Gizmos.color = RangeColor;
-            Gizmos.DrawWireSphere(transform.position, viewRadius);
-        }*/
     }
 
     void FindVisibleTargets()
