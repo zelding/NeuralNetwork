@@ -47,22 +47,25 @@ public class SimulationManager : MonoBehaviour
 
     public List<EntityController> Entities;
     public List<FoodController> Food;
-    public List<EntityController> WorstEntities;
-    public List<EntityController> BestEntities;
-    public List<EntityController> MiddleEntities;
+
+    [SerializeField]
+    public List<EntityState> WorstEntities;
+    [SerializeField]
+    public List<EntityState> BestEntities;
+    public List<EntityState> MiddleEntities;
 
     private void Awake()
     {
         EntityInfoRenderer[] rr = FindObjectsOfType<EntityInfoRenderer>();
 
         if (rr.Length > 2) {
-            EntityInfoRenderer = rr[ 0 ];
-            BestEntityInfoRenderer = rr[ 1 ];
+            BestEntityInfoRenderer = rr[ 0 ];
+            EntityInfoRenderer = rr[ 1 ];
             WorstEntityInfoRenderer= rr[ 2 ];
         }
         else {
-            BestEntityInfoRenderer = rr[ rr.Length - 1 ];
-            EntityInfoRenderer = rr[ 0 ];
+            BestEntityInfoRenderer = rr[ 0 ];
+            EntityInfoRenderer = rr[ rr.Length - 1 ];
         }
     }
 
@@ -76,9 +79,9 @@ public class SimulationManager : MonoBehaviour
         Generation = 1;
         Entities = new List<EntityController>();
         Food = new List<FoodController>();
-        WorstEntities = new List<EntityController>();
-        BestEntities = new List<EntityController>();
-        MiddleEntities = new List<EntityController>();
+        WorstEntities = new List<EntityState>();
+        BestEntities = new List<EntityState>();
+        MiddleEntities = new List<EntityState>();
 
         thirdPersonCameraController = GetComponent<ThirdPersonCameraController>();
         thirdPersonCameraController.enabled = false;
@@ -129,6 +132,9 @@ public class SimulationManager : MonoBehaviour
             if( Entities.Count > 0 )
             {
                 CreateChildrenEntities();
+
+                BestEntityInfoRenderer.SelectedEntity = BestEntities[ BestEntities.Count - 1 ];
+                WorstEntityInfoRenderer.SelectedEntity = WorstEntities[ WorstEntities.Count - 1 ];
             }
         }
     }
@@ -151,6 +157,31 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
+    private void OnGUI()
+    {
+        txt_pop_size.text = "Population: " + FindObjectsOfType<EntityController>().Length +
+                " / " + Entities.Count +
+                " / " + startingFishes;
+        txt_generation.text = "Generation: " + Generation;
+        txt_food.text = "Food: " + FindObjectsOfType<FoodController>().Length +
+                " / " + Food.Count +
+                " / " + startingfood;
+
+        if( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null )
+        {
+            EntityInfoRenderer.SelectedEntity = SelectedEntity;
+        }
+
+        if( cycleEntities && lastCycle > 5f )
+        {
+            lastCycle = 0;
+        }
+        else
+        {
+            lastCycle += Time.smoothDeltaTime;
+        }
+    }
+
     private void CreateChildrenEntities()
     {
         Debug.Log("New gen start");
@@ -163,9 +194,9 @@ public class SimulationManager : MonoBehaviour
 
         var nextGeneration = new List<EntityController>();
 
-        WorstEntities.Add(Entities[ 0 ]);
-        BestEntities.Add(Entities[ Entities.Count - 1 ]);
-        MiddleEntities.Add(Entities[ middle ]);
+        WorstEntities.Add(new EntityState(Entities[ 0 ]));
+        BestEntities.Add(new EntityState(Entities[ Entities.Count - 1 ]));
+        MiddleEntities.Add(new EntityState(Entities[ middle ]));
 
         for( int i = middle; i < count; i++ )
         {
@@ -213,29 +244,6 @@ public class SimulationManager : MonoBehaviour
         }
 
         isRunning = true;
-    }
-
-    private void OnGUI()
-    {
-        txt_pop_size.text = "Population: " + FindObjectsOfType<EntityController>().Length +
-                " / " + Entities.Count + 
-                " / " + startingFishes;
-        txt_generation.text = "Generation: " + Generation;
-        txt_food.text = "Food: " + FindObjectsOfType<FoodController>().Length +
-                " / " + Food.Count + 
-                " / " + startingfood;
-
-        if( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null )
-        {
-            EntityInfoRenderer.SelectedEntity = SelectedEntity;
-        }
-
-        if ( cycleEntities && lastCycle > 5f ) {
-            lastCycle = 0;
-        }
-        else {
-            lastCycle += Time.smoothDeltaTime;
-        }
     }
 
     private void DetectMouseEvents()

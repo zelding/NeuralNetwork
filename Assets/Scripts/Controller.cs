@@ -5,12 +5,12 @@ public class Controller : MonoBehaviour {
 
 	public float moveSpeed = 60;
 
-	Rigidbody rigidbody;
+	Rigidbody Rigidbody;
 	Camera viewCamera;
 	Vector3 velocity;
 
 	void Start () {
-		rigidbody = GetComponent<Rigidbody> ();
+		Rigidbody = GetComponent<Rigidbody> ();
 		viewCamera = Camera.main;
 	}
 
@@ -21,6 +21,6 @@ public class Controller : MonoBehaviour {
 	}
 
 	void FixedUpdate() {
-		rigidbody.MovePosition (rigidbody.position + velocity * Time.fixedDeltaTime);
+		Rigidbody.MovePosition (Rigidbody.position + velocity * Time.fixedDeltaTime);
 	}
 }

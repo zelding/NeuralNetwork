@@ -65,12 +65,9 @@ public class NeuralNetwork
     /// 
     /// </summary>
     /// <param name="copyME"></param>
-    public NeuralNetwork( NeuralNetwork copyME )
+    public NeuralNetwork( NeuralNetwork copyME, bool justCopy = false )
     {
         historyEnabled = false;
-        gen = copyME.gen + 1;
-        mutationsCount = 0;
-        lineage = copyME.lineage + "" + gen + "|";
 
         layers = new int[ copyME.layers.Length ];
 
@@ -85,7 +82,18 @@ public class NeuralNetwork
 
         isMutated = false;
 
-        Mutate();
+        if( !justCopy )
+        {
+            gen = copyME.gen + 1;
+            mutationsCount = 0;
+            lineage = copyME.lineage + "" + gen + "|";
+            Mutate();
+        }
+        else {
+            gen = copyME.gen;
+            mutationsCount = copyME.mutationsCount;
+            lineage = copyME.lineage;
+        }
     }
 
     protected void SaveState()
@@ -270,6 +278,7 @@ public class NeuralNetwork
 
     public static float Normalize( float value )
     {
-        return (1.0f / (1.0f + Mathf.Pow(Mathf.Exp(1), -value)) - 0.5f) * 2;
+        return (float) System.Math.Tanh(value);
+        //return (1.0f / (1.0f + Mathf.Pow(Mathf.Exp(1), -value)) - 0.5f) * 2;
     }
 }

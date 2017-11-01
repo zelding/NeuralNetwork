@@ -4,39 +4,33 @@ using System.Collections.Generic;
 
 public class Nostrils : MonoBehaviour
 {
-    public float viewRadius;
-    [Range(0,360)]
-    public float viewAngle;
-
     public LayerMask targetMask;
     public LayerMask obstacleMask;
 
     public bool allowRender;
 
-    public List<Transform> visibleTargets = new List<Transform>();
-
     public Transform Body;
 
-    Genes.Movement Chromosome;
+    public List<Transform> visibleTargets = new List<Transform>();
 
-    float range;
-    float resolution;
-    int maxTargets;
+    float viewRadius;
+
+    EntityController entity;
+    Coroutine scanning;
 
     private void Awake()
     {
         Body   = GetComponentInParent<Transform>();
+        entity = GetComponentInParent<EntityController>();
     }
 
     private void Start()
     {
-        resolution = Mathf.Clamp01(resolution);
-        maxTargets = Mathf.Clamp(maxTargets, 1, 5);
-        range = Mathf.Clamp(range, 20, 200);
+        viewRadius = entity.Genes.Noze.range;
 
         if( targetMask != 0 && obstacleMask != 0 )
         {
-            StartCoroutine("FindTargetsWithDelay", Time.fixedDeltaTime);
+            scanning = StartCoroutine("FindTargetsWithDelay", Time.fixedDeltaTime);
         }
     }
 

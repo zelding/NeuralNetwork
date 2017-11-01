@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EntityController : MonoBehaviour, System.IComparable<EntityController>
+public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
-
     public string Name { get; private set; }
-
     public NeuralNetwork Brain;
     public Genes Genes;
     public EightDirController Legs;
-    //public SphereCollider Nose;
     public FieldOfView Eye;
     public Nostrils Nose;
     public Transform Body;
@@ -37,6 +34,9 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private bool isInited = false;
 
     private Vector3 lastPosition;
+    private float displacement;
+    private float speed;
+    private float topSpeed;
 
     public Transform lastNoseTartget;
     public Transform lastEyeTarget;
@@ -77,9 +77,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         isInited = true;
     }
 
-    public bool isAlive()
-    {
-        return Immortal || ( !markedAsDead || Energy > 0 ); // yes
+    public float GetSpeed() {
+        return speed;
     }
 
     private void OnDisable()
@@ -109,6 +108,9 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         Age = 0;
         //Energy = 1000;
 
+        displacement = 0;
+        speed = 0;
+        topSpeed = 0;
         lastPosition = transform.position;
     }
 
@@ -124,7 +126,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 foreach(Transform t in Nose.visibleTargets ) {
                     if (t != Body) {
                         lastNoseTartget = t;
-                        break;
+                        //break;
                     }
                 }
             }
@@ -133,7 +135,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 foreach( Transform t in Eye.visibleTargets ) {
                     if( t != Body) {
                         lastEyeTarget = t;
-                        break;
+                        //break;
                     }
                 }
             }
@@ -166,6 +168,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             Age += Time.deltaTime;
             UseEnergy(Time.deltaTime);
             Distance += Vector3.Distance(lastPosition, transform.position);
+            displacement += Vector3.Distance(lastPosition, transform.position);
             lastPosition = transform.position;
         }
         else
@@ -243,9 +246,16 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     {
         if( Energy > 0 )
         {
+            speed = displacement / Time.fixedDeltaTime;
+            displacement = 0;
+
+            if ( speed > topSpeed ) {
+                topSpeed = speed;
+            }
+
             if( Output[ 4 ] > Output[ 5 ] )
             {
-                if( lastNoseTartget != null && (Mathf.Abs(Output[ 0 ]) > 0 || Mathf.Abs(Output[ 1 ]) > 0) ) //Genes.smth.smth
+                if( lastNoseTartget != null ) //Genes.smth.smth
                 {
                     //Legs.MoveTowardsTarget(lastNoseTartget);
                     //Vector3 dirToTarget = (lastNoseTartget.position - Body.position).normalized;
@@ -255,7 +265,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             }
             else
             {
-                if( lastEyeTarget != null && (Mathf.Abs(Output[ 2 ]) > 0 || Mathf.Abs(Output[ 3 ]) > 0) ) //Genes.smth.smth
+                if( lastEyeTarget != null ) //Genes.smth.smth
                 {
                     //Legs.MoveTowardsTarget(eyeLastTarget);
                     //Vector3 dirToTarget = (eyeLastTarget.position - Body.position).normalized;
@@ -265,7 +275,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 }
             }
 
-            if (lastPosition == transform.position)
+            if ( speed < 1.15f )
             {
                 UseEnergy(2.67f);
             }
@@ -286,6 +296,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 Gizmos.color = Color.red;
                 //Gizmos.DrawLine(lastNoseTartget.position, transform.position);
                 Gizmos.DrawWireSphere(lastNoseTartget.position, 4f);
+                Gizmos.DrawWireSphere(transform.position, Genes.Noze.range);
             }
 
             if( Nose.enabled && Nose.visibleTargets.Count > 0 )
@@ -304,6 +315,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 Gizmos.color = Color.yellow;
                 //Gizmos.DrawLine(lastEyeTarget.position, transform.position);
                 Gizmos.DrawWireSphere(lastEyeTarget.position, 13f);
+                Gizmos.DrawWireSphere(transform.position, Genes.Eyes.range);
             }
 
             if( Eye.enabled && Eye.visibleTargets.Count > 0 )
@@ -353,9 +365,66 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     {
         if( other == null ) return 1;
 
-        float sum = Distance + Age;
+        return GetFittness().CompareTo(other.GetFittness());
+    }
 
-        return sum.CompareTo(other.Distance + other.Age);
+    #endregion
+
+    #region EntityInfo
+
+    public string GetName()
+    {
+        return Name;
+    }
+
+    public string GetNeuronString()
+    {
+        return NeuStr;
+    }
+
+    public NeuralNetwork GetBrain()
+    {
+        return Brain;
+    }
+
+    public Genes GetGenes()
+    {
+        return Genes;
+    }
+
+    public float GetEnergy()
+    {
+        return Energy;
+    }
+
+    public float GetAge()
+    {
+        return Age;
+    }
+
+    public float GetDistance()
+    {
+        return Distance;
+    }
+
+    public float GetConsumption()
+    {
+        return Consumption;
+    }
+
+    public bool isAlive()
+    {
+        return Immortal || (!markedAsDead || Energy > 0); // yes
+    }
+
+    public float GetFittness()
+    {
+        return (Distance + Age) * Consumption;
+    }
+
+    public float GetTopSpeed()
+    {
+        return topSpeed;
     }
 
     #endregion

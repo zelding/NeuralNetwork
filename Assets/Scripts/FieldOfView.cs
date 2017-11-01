@@ -4,37 +4,32 @@ using System.Collections.Generic;
 
 public class FieldOfView : MonoBehaviour
 {
-    public float viewRadius;
-    [Range(0,360)]
-    public float viewAngle;
-
     public LayerMask targetMask;
     public LayerMask obstacleMask;
 
     public bool allowRender;
 
-    public List<Transform> visibleTargets = new List<Transform>();
-
-    public float meshResolution = 10f;
-    public int edgeResolveIterations = 4;
-    public float edgeDstThreshold = 0.67f;
-
     public Transform Body;
 
     public MeshFilter viewMeshFilter;
-    Mesh viewMesh;
 
+    public List<Transform> visibleTargets = new List<Transform>();
+
+    float viewRadius;
+    float viewAngle;
+    float meshResolution;
+    int edgeResolveIterations;
+    float edgeDstThreshold;
+    
+    Mesh viewMesh;
+    EntityController entity;
     Coroutine scanning;
-    Genes.Sight Chromosome;
 
     void Awake()
     {
-        meshResolution = 10f;
-        edgeResolveIterations = 4;
-        edgeDstThreshold = 0.67f;
-
         Body = GetComponentInParent<Transform>();
         viewMeshFilter = GetComponent<MeshFilter>();
+        entity = GetComponentInParent<EntityController>();
     }
 
     void Start()
@@ -42,6 +37,13 @@ public class FieldOfView : MonoBehaviour
         viewMesh = new Mesh();
         viewMesh.name = "View Mesh";
         viewMeshFilter.mesh = viewMesh;
+
+        meshResolution = entity.Genes.Eyes.resolution;
+        edgeResolveIterations = 4;
+        edgeDstThreshold = 0.67f;
+
+        viewAngle = entity.Genes.Eyes.angle;
+        viewRadius = entity.Genes.Eyes.range;
 
         scanning = StartCoroutine("FindTargetsWithDelay", 0.25f);
     }

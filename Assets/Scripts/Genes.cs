@@ -10,13 +10,19 @@ public class Genes
 
     public abstract class AMutateable 
     {
-        public bool isMutated = false;
+        public const float minDominance = 0.1f;
+        public const float maxDominance = 0.65f;
 
-        abstract internal void Mutate();
+        public bool isMutated = false;
+        public float dominance;
+
+        virtual internal void Mutate() {
+            dominance = Random.Range(minDominance, maxDominance);
+        }
 
         protected float MutateValue(float value, float min = -0.5f, float max = 0.5f)
         {
-            float randomNumber = Random.Range(0f, 1000f);
+            float randomNumber = Random.Range(0f, 100f);
 
             if (randomNumber <= 2f)
             {
@@ -80,45 +86,66 @@ public class Genes
             smoothSpeed = movement.smoothSpeed;
         }
 
-        internal override void Mutate()
+        override internal void Mutate()
         {
+            base.Mutate();
             speed = MutateValue(speed, minSpeed, maxSpeed);
             turnSpeed = MutateValue(turnSpeed, minTurnSpeed, maxTurnSpeed);
             smoothSpeed = MutateValue(smoothSpeed, minSmoothSpeed, maxSmoothSpeed);
         }
     }
 
-    public class Sight : AMutateable
+    public class Smell : AMutateable
     {
         public const float minRange = 30f;
-        public const float maxRange = 80f;
-
-        public const float minAngle = 30f;
-        public const float maxAngle = 120f;
+        public const float maxRange = 180f;
 
         public const float minResolution = 1f;
         public const float maxResolution = 5f;
 
         internal float range;
-        internal float angle;
         internal float resolution;
 
-        internal Sight()
+        internal Smell()
         {
             range = Random.Range(minRange, maxRange);
-            angle = Random.Range(minAngle, maxAngle);
             resolution = Random.Range(minResolution, maxResolution);
         }
 
-        internal Sight(Sight sight)
+        internal Smell( Smell smell )
         {
-            range = sight.range;
+            range = smell.range;
+            resolution = smell.resolution;
+        }
+
+        override internal void Mutate()
+        {
+            base.Mutate();
+            range = MutateValue(range, minRange, maxRange);
+            resolution = MutateValue(resolution, minResolution, maxResolution);
+        }
+    }
+
+    public class Sight : Smell
+    {
+        public const float minAngle = 30f;
+        public const float maxAngle = 160f;
+
+        internal float angle;
+
+        internal Sight() : base()
+        {
+            angle = Random.Range(minAngle, maxAngle);
+        }
+
+        internal Sight( Sight sight ) : base(sight as Smell)
+        {
             angle = sight.angle;
-            resolution = sight.resolution;
         }
 
         internal override void Mutate()
         {
+            base.Mutate();
             range = MutateValue(range, minRange, maxRange);
             angle = MutateValue(angle, minAngle, maxAngle);
             resolution = MutateValue(resolution, minResolution, maxResolution);
@@ -127,6 +154,7 @@ public class Genes
 
     public Movement Legs { get; internal set; }
     public Sight Eyes { get; internal set; }
+    public Smell Noze { get; private set; }
 
     public List<AMutateable> Chromosomes;
 
@@ -136,32 +164,39 @@ public class Genes
     {
         Legs = new Movement();
         Eyes = new Sight();
+        Noze = new Smell();
 
         Chromosomes = new List<AMutateable> {
-            new Movement(),
-            new Sight()
+            Legs,
+            Eyes,
+            Noze
         };
     }
 
-    public Genes(Genes genes)
+    public Genes(Genes genes, bool copyOnly = false)
     {
         Legs = new Movement(genes.Legs);
         Eyes = new Sight(genes.Eyes);
+        Noze = new Smell(genes.Noze);
 
-        /*Chromosomes = new List<AMutateable> {
-            new Movement(),
-            new Sight()
-        }.ForEach(IMutatable c => c.Mutate());*/
+        Chromosomes = new List<AMutateable> {
+            Legs,
+            Eyes,
+            Noze
+        };
 
-        Mutate();
+        if( !copyOnly ) {
+            Mutate();
+        }
     }
 
     protected void Mutate()
     {
-        Legs.Mutate();
-        Eyes.Mutate();
+        foreach(var c in Chromosomes) {
+            c.Mutate();
+        }
 
-        isMutated = Legs.isMutated || Eyes.isMutated;
+        isMutated = Legs.isMutated || Eyes.isMutated || Noze.isMutated;
     }
 }
 
