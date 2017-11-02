@@ -1,6 +1,7 @@
 ﻿﻿﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Assets.Scripts.Math;
 
 public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
@@ -12,6 +13,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public Nostrils Nose;
     public Transform Body;
     public Rigidbody Bones;
+
+    public bool AllowRender;
 
     [Header("Hmmmmmm")]
     public bool Immortal = false;
@@ -34,6 +37,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private bool isInited = false;
 
     private Vector3 lastPosition;
+    private Vector3 guiLastPosition;
     private float displacement;
     private float speed;
     private float topSpeed;
@@ -41,12 +45,18 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public Transform lastNoseTartget;
     public Transform lastEyeTarget;
 
+    private int noseTargetIndex;
+    private int eyeTargetIndex;
+
     public void Awake()
     {
         Eye  = GetComponentInChildren<FieldOfView>();
         Body = GetComponent<Transform>();
         Nose = GetComponentInChildren<Nostrils>();
         Bones = GetComponent<Rigidbody>();
+
+        noseTargetIndex = 0;
+        eyeTargetIndex = 0;
     }
 
     public void InheritFrom( EntityController entity )
@@ -55,21 +65,17 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         Genes = new Genes(entity.Genes);
         Legs = new EightDirController(this);
 
-        Name = entity.Name + entity.Name[ entity.Name.Length - 1 ];
+        Name = entity.Name + ".";
 
-        if( Genes.isMutated )
-        {
-            Name = Name + Collections.Names[ Random.Range(0, Collections.Names.Count) ][ 0 ] + " ";
-        }
-        
         if( Brain.isMutated )
         {
-            Name += Collections.Names[ Random.Range(0, Collections.Names.Count) ][ 1 ];
+            string str = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
+
+            Name += str[ Random.Range(1, str.Length - 1) ];
         }
 
-        if ( Genes.isMutated && Brain.isMutated ) 
-        {
-            Name = Name.Contains("X-") ? Name.Replace("X-", "") : "X-" + Name;
+        if( Genes.isMutated ) {
+            Name += "X";
         }
 
         Immortal = entity.Immortal;
@@ -98,20 +104,20 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             Name = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
         }
 
-        name = "Fish " + Name;
         NeuStr = Brain.lineage;
         Distance = 0f;
         Consumption = 0f;
 
         Output = new float[ Brain.layers[ Brain.layers.Length - 1] ];
 
+        name = "Fish " + Name;
+
         Age = 0;
-        //Energy = 1000;
 
         displacement = 0;
         speed = 0;
         topSpeed = 0;
-        lastPosition = transform.position;
+        guiLastPosition = lastPosition = transform.position;
     }
 
     // Update is called once per frame
@@ -123,21 +129,37 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             Vector3 eyeInput = Vector3.zero;
 
             if( Nose.visibleTargets.Count > 0 ) {
-                foreach(Transform t in Nose.visibleTargets ) {
-                    if (t != Body) {
-                        lastNoseTartget = t;
-                        //break;
+                int i = 0;
+                lastNoseTartget = null;
+
+                foreach(Transform t in Nose.visibleTargets) {
+                    lastNoseTartget = t;
+
+                    if ( noseTargetIndex == i++ ) {
+                        noseTargetIndex++;
+                        break;
                     }
                 }
             }
+            else {
+                noseTargetIndex = 0;
+            }
 
             if( Eye.visibleTargets.Count > 0 ) {
+                int i = 0;
+                lastEyeTarget = null;
+
                 foreach( Transform t in Eye.visibleTargets ) {
-                    if( t != Body) {
-                        lastEyeTarget = t;
-                        //break;
+                    lastEyeTarget = t;
+
+                    if( eyeTargetIndex == i++ ) {
+                        eyeTargetIndex++;
+                        break;
                     }
                 }
+            }
+            else {
+                eyeTargetIndex = 0;
             }
 
             if( lastEyeTarget != null )
@@ -166,7 +188,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             Output = Brain.FeedForward(Input);
 
             Age += Time.deltaTime;
-            UseEnergy(Time.deltaTime);
+
+            if( Consumption > 0 ) {
+                UseEnergy(Time.deltaTime / Consumption + 1);
+            }
+            else {
+                UseEnergy(Time.deltaTime);
+            }
+
             Distance += Vector3.Distance(lastPosition, transform.position);
             displacement += Vector3.Distance(lastPosition, transform.position);
             lastPosition = transform.position;
@@ -284,12 +313,10 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     private void OnDrawGizmos()
     {
-        if( Energy > 0 )
+        if( Energy > 0 && AllowRender )
         {
-            float distance = 10.00f;
-
             Gizmos.color = Color.white;
-            Gizmos.DrawRay(transform.position, transform.forward * (distance + transform.localScale.z));
+            Gizmos.DrawRay(transform.position, transform.forward * (speed + transform.localScale.z));
 
             if( lastNoseTartget != null )
             {
@@ -328,6 +355,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                     }
                 }
             }
+
+            Vector3 dir = (transform.position - guiLastPosition).normalized * Genes.Legs.speed * 15;
+
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawLine(guiLastPosition, transform.position);
+
+            //Gizmos.DrawRay(guiLastPosition, transform.position);
+            guiLastPosition = transform.position;
         }
     }
 

@@ -38,7 +38,7 @@ public class FieldOfView : MonoBehaviour
         viewMesh.name = "View Mesh";
         viewMeshFilter.mesh = viewMesh;
 
-        meshResolution = entity.Genes.Eyes.resolution;
+        meshResolution = 5;
         edgeResolveIterations = 4;
         edgeDstThreshold = 0.67f;
 
@@ -61,21 +61,13 @@ public class FieldOfView : MonoBehaviour
     {
         if( enabled )
         {
-            if( viewMesh != null )
-            {
-               DrawFieldOfView();
-            }
+            DrawFieldOfView();
         }
         else
         {
             if( scanning != null )
             {
                 StopCoroutine(scanning);
-            }
-
-            if( viewMesh != null )
-            {
-                viewMesh.Clear();
             }
         }
     }
@@ -89,8 +81,7 @@ public class FieldOfView : MonoBehaviour
         {
             Transform target = targetsInViewRadius[i].transform;
 
-            if( target == Body )
-            {
+            if( target == transform.parent.transform ) {
                 continue;
             }
 
@@ -169,6 +160,9 @@ public class FieldOfView : MonoBehaviour
             viewMesh.vertices = vertices;
             viewMesh.triangles = triangles;
             viewMesh.RecalculateNormals();
+        }
+        else if( viewMesh.vertexCount > 0 ) {
+            viewMesh.Clear();
         }
     }
 

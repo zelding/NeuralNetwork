@@ -77,10 +77,10 @@ public class SimulationManager : MonoBehaviour
         currentCamera = TopDownCamera;
 
         Generation = 1;
-        Entities = new List<EntityController>();
-        Food = new List<FoodController>();
-        WorstEntities = new List<EntityState>();
-        BestEntities = new List<EntityState>();
+        Entities       = new List<EntityController>();
+        Food           = new List<FoodController>();
+        WorstEntities  = new List<EntityState>();
+        BestEntities   = new List<EntityState>();
         MiddleEntities = new List<EntityState>();
 
         thirdPersonCameraController = GetComponent<ThirdPersonCameraController>();
@@ -133,8 +133,13 @@ public class SimulationManager : MonoBehaviour
             {
                 CreateChildrenEntities();
 
-                BestEntityInfoRenderer.SelectedEntity = BestEntities[ BestEntities.Count - 1 ];
+                BestEntityInfoRenderer.SelectedEntity  = BestEntities[ BestEntities.Count - 1 ];
                 WorstEntityInfoRenderer.SelectedEntity = WorstEntities[ WorstEntities.Count - 1 ];
+            }
+        }
+        else {
+            if ( SelectedEntity == null && EntityInfoRenderer.SelectedEntity != null ) {
+                EntityInfoRenderer.SelectedEntity = null;
             }
         }
     }
@@ -184,7 +189,6 @@ public class SimulationManager : MonoBehaviour
 
     private void CreateChildrenEntities()
     {
-        Debug.Log("New gen start");
         Generation++;
 
         Entities.Sort();
@@ -193,10 +197,6 @@ public class SimulationManager : MonoBehaviour
         int middle = (Entities.Count % 2 == 0) ? Entities.Count / 2 : (Entities.Count + 1) / 2;
 
         var nextGeneration = new List<EntityController>();
-
-        WorstEntities.Add(new EntityState(Entities[ 0 ]));
-        BestEntities.Add(new EntityState(Entities[ Entities.Count - 1 ]));
-        MiddleEntities.Add(new EntityState(Entities[ middle ]));
 
         for( int i = middle; i < count; i++ )
         {
@@ -220,6 +220,10 @@ public class SimulationManager : MonoBehaviour
                 nextGeneration.Add(fishSoul);
             }
         }
+
+        WorstEntities.Add(new EntityState(Entities[ 0 ]));
+        BestEntities.Add(new EntityState(Entities[ Entities.Count - 1 ]));
+        MiddleEntities.Add(new EntityState(Entities[ middle ]));
 
         foreach( EntityController entity in Entities )
         {
@@ -334,6 +338,7 @@ public class SimulationManager : MonoBehaviour
         ClearHover();
 
         EntityInfoRenderer.SelectedEntity = SelectedEntity;
+        SelectedEntity.AllowRender = true;
     }
 
     private void HoverSelectable( EntityController obj )
@@ -399,6 +404,7 @@ public class SimulationManager : MonoBehaviour
         }
         r.material = m;
 
+        SelectedEntity.AllowRender = false;
         SelectedEntity.DisableEyeLashes();
         SelectedEntity = null;
         EntityInfoRenderer.SelectedEntity = SelectedEntity;

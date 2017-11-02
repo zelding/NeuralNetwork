@@ -42,14 +42,18 @@ public class Nostrils : MonoBehaviour
         for( int i = 0; i < targetsInViewRadius.Length; i++ )
         {
             Transform target = targetsInViewRadius[i].transform;
+
+            if( target == transform.parent.transform ) {
+                continue;
+            }
+
             Vector3 dirToTarget = (target.position - Body.position).normalized;
 
-            float dstToTarget = Vector3.Distance (target.position, Body.position);
+            float dstToTarget = Vector3.Distance(target.position, Body.position);
 
             if( dstToTarget <= viewRadius ) // ?
             {
-                if( !Physics.Raycast(Body.position, dirToTarget, dstToTarget, obstacleMask) )
-                {
+                if( !Physics.Raycast(Body.position, dirToTarget, dstToTarget, obstacleMask) ) {
                     visibleTargets.Add(target);
                 }
             }

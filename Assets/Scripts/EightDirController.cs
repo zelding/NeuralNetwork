@@ -81,8 +81,8 @@ public class EightDirController {
 
     public void BabySteps(float x, float y)
     {
-        Vector3 mousePos = new Vector3(x, 0, y).normalized;
-        entity.transform.LookAt(mousePos + Vector3.up * entity.transform.position.y);
+        Vector3 targetPos = new Vector3(x, 0, y).normalized;
+        body.transform.LookAt(targetPos + Vector3.up * entity.transform.position.y);
         currentVelocity = new Vector3(x, 0, y).normalized * velocity;
 
         body.MovePosition(entity.transform.position + currentVelocity * Time.fixedDeltaTime);

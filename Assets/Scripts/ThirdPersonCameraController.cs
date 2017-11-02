@@ -7,6 +7,10 @@ public class ThirdPersonCameraController : MonoBehaviour
     public Camera Followingcamera;
 
     public Vector3 offsetPos;
+    public Quaternion offsetRotation;
+
+    public float scrollspeed_y = 3f;
+    public float scrollspeed_z = 3f;
 
     public float moveSpeed   = 5f;
     public float turnSpeed   = 10f;
@@ -30,16 +34,12 @@ public class ThirdPersonCameraController : MonoBehaviour
         if (enabled)
         {
             MoveWithTarget();
-            LookAtTarget();
-
-            if ( Input.GetKeyDown(KeyCode.Space) && !smoothRotating ) {
-                targetRotation = Quaternion.LookRotation(Target.forward);
-                Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
-            }
 
             if ( Input.mouseScrollDelta.magnitude != 0 ) {
-                offsetPos += new Vector3(0, Input.mouseScrollDelta.y, Input.mouseScrollDelta.y);
+                offsetPos += new Vector3(0, Input.mouseScrollDelta.y * scrollspeed_y, -Input.mouseScrollDelta.y * scrollspeed_z);
             }
+
+            LookAtTarget();
         }
         else
         {
@@ -66,10 +66,8 @@ public class ThirdPersonCameraController : MonoBehaviour
     {
         if (Target != null)
         {
-            //targetRotation = Quaternion.LookRotation(Target.position - Followingcamera.transform.position);
-            //Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
-
             float angle = Mathf.SmoothDampAngle(Followingcamera.transform.rotation.eulerAngles.y, Target.rotation.eulerAngles.y, ref turnSpeed, 0.3f);
+
             Followingcamera.transform.rotation = Quaternion.Euler(Followingcamera.transform.rotation.x, angle, 0);
         }
     }

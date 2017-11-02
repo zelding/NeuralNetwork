@@ -54,7 +54,6 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -70,7 +69,6 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -112,15 +110,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc5a4c4c7da1e4545a10100e98685e83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StandardMaxRadius: 5
-  MaxRadius: 10
-  closeRange: 7
-  veryCloseRange: 4
+  StandardMaxRadius: 35
+  MaxRadius: 75
+  closeRange: 20
+  veryCloseRange: 10
   foodMask:
     serializedVersion: 2
     m_Bits: 2048
   EnableBubleing: 1
-  Frequency: 1.5
+  Frequency: 1.147
   Nearby: 0
   Close: 0
   stench: {fileID: 0}
@@ -134,7 +132,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 10
+  m_Radius: 35
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!135 &135436237562323806
 SphereCollider:

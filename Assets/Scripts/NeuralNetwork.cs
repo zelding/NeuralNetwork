@@ -25,6 +25,12 @@ public class NeuralNetwork
     public string lineage = "";
     public uint gen       = 0;
 
+    public static float Normalize( float value )
+    {
+        return (float) System.Math.Tanh(value);
+        //return (1.0f / (1.0f + Mathf.Pow(Mathf.Exp(1), -value)) - 0.5f) * 2;
+    }
+
     /// <summary>
     /// Number of neurons in a given layer
     /// </summary>
@@ -274,11 +280,5 @@ public class NeuralNetwork
                 }
             }
         }
-    }
-
-    public static float Normalize( float value )
-    {
-        return (float) System.Math.Tanh(value);
-        //return (1.0f / (1.0f + Mathf.Pow(Mathf.Exp(1), -value)) - 0.5f) * 2;
     }
 }

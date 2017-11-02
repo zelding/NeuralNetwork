@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 33334124953708378}
   m_Layer: 2
   m_Name: Eyes
-  m_TagString: Untagged
+  m_TagString: eye
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -295,12 +295,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetMask:
     serializedVersion: 2
-    m_Bits: 1024
+    m_Bits: 3072
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 2816
+    m_Bits: 768
   allowRender: 0
-  Body: {fileID: 0}
+  Body: {fileID: 4691814901882502}
   viewMeshFilter: {fileID: 33334124953708378}
   visibleTargets: []
 --- !u!114 &114659000452761612
@@ -322,8 +322,9 @@ MonoBehaviour:
   Nose: {fileID: 0}
   Body: {fileID: 0}
   Bones: {fileID: 0}
+  AllowRender: 0
   Immortal: 0
-  Energy: 750
+  Energy: 1250
   NeuStr: '|4|'
   lastNoseTartget: {fileID: 0}
   lastEyeTarget: {fileID: 0}
@@ -345,7 +346,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   allowRender: 1
-  Body: {fileID: 0}
+  Body: {fileID: 4691814901882502}
   visibleTargets: []
 --- !u!135 &135275774190589372
 SphereCollider:

@@ -1,7 +1,6 @@
 ﻿
 public class EntityState : EntityInfo
 {
-
     string Name;
     string NeuStr;
 
@@ -19,14 +18,13 @@ public class EntityState : EntityInfo
         Brain = new NeuralNetwork(entity.Brain, true);
         Genes = new Genes(entity.Genes, true);
 
-        Energy = 0;
-
-        Name = entity.Name;
-        NeuStr = Brain.lineage;
-        Age = entity.Age;
-        Distance = entity.Distance;
+        Energy      = 0;
+        Name        = entity.Name;
+        NeuStr      = Brain.lineage;
+        Age         = entity.Age;
+        Distance    = entity.Distance;
         Consumption = entity.Consumption;
-        topSpeed = entity.GetTopSpeed();
+        topSpeed    = entity.GetTopSpeed();
     }
 
     #region EntityInfo
