@@ -53,7 +53,7 @@ public class Genes
                 isMutated = true;
             }
 
-            return value;
+            return Mathf.Clamp(value, min, max);
         }
     }
 
