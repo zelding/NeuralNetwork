@@ -29,6 +29,8 @@ public class EightDirController {
 
         velocity = entity.Genes.Legs.speed;
         turnSpeed = entity.Genes.Legs.turnSpeed;
+
+        currentVelocity = Vector3.zero;
     }
 
     public bool HandleInput( float x, float y )
@@ -81,11 +83,22 @@ public class EightDirController {
 
     public void BabySteps(float x, float y)
     {
-        Vector3 targetPos = new Vector3(x, 0, y).normalized;
-        body.transform.LookAt(targetPos + Vector3.up * entity.transform.position.y);
-        currentVelocity = new Vector3(x, 0, y).normalized * velocity;
+        float moveX = x > 0.334f ? x : x < -0.334f ? x : 0;
+        float moveY = y > 0.334f ? y : y < -0.334f ? y : 0;
+        
+        angle = Mathf.Atan2(moveX, moveY);
+        angle *= Mathf.Rad2Deg; //convert to degrees
+        //angle += entity.transform.rotation.eulerAngles.y;
 
-        body.MovePosition(entity.transform.position + currentVelocity * Time.fixedDeltaTime);
+        targetRotation = Quaternion.Euler(0, angle, 0);
+        Quaternion rotationVector = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime);
+
+        Vector3 targetPos = new Vector3(moveX, 0, moveY).normalized;
+        currentVelocity += targetPos;
+
+        entity.transform.rotation = rotationVector;
+        body.MovePosition(entity.transform.position + currentVelocity.normalized * velocity * Time.fixedDeltaTime);
+        currentVelocity = Vector3.zero;
     }
 
     /// <summary>
@@ -107,9 +120,6 @@ public class EightDirController {
 
         targetRotation            = Quaternion.Euler(0, angle, 0);
         Quaternion rotationVector = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
-        //body.AddRelativeTorque(rotationVector.eulerAngles, ForceMode.Impulse);
-
-        //body.MoveRotation(rotationVector);
         entity.transform.rotation = rotationVector;
 
         entity.UseEnergy(turnSpeed / 10f);

@@ -100,11 +100,11 @@ public class FoodController : MonoBehaviour {
 
         if ( target != null && target.ID != ID ) 
         {
-            float dst =Vector3.Distance(transform.position, col.transform.position);
+            float dst = Vector3.Distance(transform.position, col.transform.position);
 
             if ( dst > closeRange && dst < MaxRadius)
             {
-                lastDirection = col.transform.position - transform.position;
+                lastDirection = (col.transform.position - transform.position).normalized;
             }
         }
     }

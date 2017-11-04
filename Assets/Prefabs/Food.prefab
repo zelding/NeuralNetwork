@@ -119,7 +119,7 @@ MonoBehaviour:
   foodMask:
     serializedVersion: 2
     m_Bits: 2048
-  EnableBubleing: 1
+  EnableBubleing: 0
   Frequency: 1.147
   Nearby: 0
   Close: 0
@@ -134,7 +134,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 10
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!135 &135436237562323806
 SphereCollider:

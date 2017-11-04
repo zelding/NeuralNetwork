@@ -5,7 +5,18 @@ using Assets.Scripts.Math;
 
 public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
+    public static Color AliveColor = new Color(0, 0,1, 1);
+    public static Color DeadColor = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+    public static Color SelectedAliveColor = new Color(1, 0, 0, 1);
+    public static Color SelectedDeadColor = new Color(0.67f, 0, 0, 0.87f);
+    public static Color HoverAliveColor = new Color(0, 1, 0, 1);
+    public static Color HoverDeadColor = new Color(0, 0.67f, 0, 0.87f);
+
+    public static Color MovingHeadColor = new Color(1, 1, 0, 1);
+    public static Color StillHeadColor = new Color(0, 0, 1, 1);
+
     public string Name { get; private set; }
+    public string BaseName;
     public NeuralNetwork Brain;
     public Genes Genes;
     public EightDirController Legs;
@@ -14,13 +25,19 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public Transform Body;
     public Rigidbody Bones;
 
+    public int generation;
+    public int variant;
+    public int revision;
+
     public bool AllowRender;
 
     [Header("Hmmmmmm")]
     public bool Immortal = false;
 
     [Range(500f, 5000f)]
-    public float Energy;
+    public float Maxenergy;
+
+    private float Energy;
 
     public float[] Output { get; private set; }
     public float[] Input { get; set; }
@@ -48,6 +65,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private int noseTargetIndex;
     private int eyeTargetIndex;
 
+    private MeshRenderer HeadSphere;
+
     public void Awake()
     {
         Eye  = GetComponentInChildren<FieldOfView>();
@@ -57,6 +76,17 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
         noseTargetIndex = 0;
         eyeTargetIndex = 0;
+
+        MeshRenderer[] mr = GetComponentsInChildren<MeshRenderer>();
+
+        foreach( MeshRenderer r in mr )
+        {
+            if (r.tag == "eye")
+            {
+                HeadSphere = r;
+                break;
+            }
+        }
     }
 
     public void InheritFrom( EntityController entity )
@@ -65,18 +95,20 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         Genes = new Genes(entity.Genes);
         Legs = new EightDirController(this);
 
-        Name = entity.Name + ".";
+        generation = (int) Brain.gen;
+        variant = entity.variant;
+        revision = entity.revision;
 
         if( Brain.isMutated )
         {
-            string str = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
-
-            Name += str[ Random.Range(1, str.Length - 1) ];
+            revision++;
         }
 
         if( Genes.isMutated ) {
-            Name += "X";
+            variant++;
         }
+        BaseName = entity.BaseName;
+        Name = BaseName + " " + generation + "." + variant + "." + revision;
 
         Immortal = entity.Immortal;
 
@@ -98,10 +130,10 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( !isInited )
         {
             Genes = new Genes();
-            Brain = new NeuralNetwork(new int[ 4 ] { 7, 32, 32, 8 });
+            Brain = new NeuralNetwork(new int[ 5 ] { 5, 15, 15, 15, 2 });
             Legs = new EightDirController(this);
 
-            Name = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
+            Name = BaseName = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
         }
 
         NeuStr = Brain.lineage;
@@ -113,6 +145,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         name = "Fish " + Name;
 
         Age = 0;
+
+        Energy = Maxenergy;
 
         displacement = 0;
         speed = 0;
@@ -164,37 +198,30 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             if( lastEyeTarget != null )
             {
-                eyeInput = (lastEyeTarget.transform.position - Body.transform.position);
+                eyeInput = (lastEyeTarget.transform.position - Body.transform.position).normalized;
+                eyeInput = transform.InverseTransformDirection(eyeInput);
             }
 
             if( lastNoseTartget != null )
             {
-                noseInput = (lastNoseTartget.transform.position - Body.transform.position);
+                noseInput = (lastNoseTartget.transform.position - Body.transform.position).normalized;
+                noseInput = transform.InverseTransformDirection(noseInput);
             }
 
             float noseTargetInput = Nose.visibleTargets.Count -1;
-            float eyeTargetInput = Eye.visibleTargets.Count -1;
+            float eyeTargetInput  = Eye.visibleTargets.Count -1;
 
-            Input = new float[ 7 ] {
-                noseTargetInput,
-                eyeTargetInput,
+            Input = new float[ 5 ] {
                 eyeInput.x,
                 eyeInput.z,
                 noseInput.x,
                 noseInput.z,
-                Energy
+                ((Energy / Maxenergy) - 0.5f) * 2
             };
 
             Output = Brain.FeedForward(Input);
 
             Age += Time.deltaTime;
-
-            if( Consumption > 0 ) {
-                UseEnergy(Time.deltaTime / Consumption + 1);
-            }
-            else {
-                UseEnergy(Time.deltaTime);
-            }
 
             Distance += Vector3.Distance(lastPosition, transform.position);
             displacement += Vector3.Distance(lastPosition, transform.position);
@@ -275,39 +302,37 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     {
         if( Energy > 0 )
         {
-            speed = displacement / Time.fixedDeltaTime;
+            speed = (float)System.Math.Round(displacement / Time.fixedDeltaTime, 2);
             displacement = 0;
 
             if ( speed > topSpeed ) {
                 topSpeed = speed;
             }
 
-            if( Output[ 4 ] > Output[ 5 ] )
+            if ( speed < 2.67f )
             {
-                if( lastNoseTartget != null ) //Genes.smth.smth
-                {
-                    //Legs.MoveTowardsTarget(lastNoseTartget);
-                    //Vector3 dirToTarget = (lastNoseTartget.position - Body.position).normalized;
-                    //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 0 ]), NeuralNetwork.Normalize(Output[ 1 ]));
-                    Legs.BabySteps(NeuralNetwork.Normalize(Output[ 0 ]) * 2, NeuralNetwork.Normalize(Output[ 1 ]) * 2);
-                }
+                var mat = HeadSphere.material;
+                mat.color = StillHeadColor;
+                HeadSphere.material = mat;
+                UseEnergy(0.67f);
             }
             else
             {
-                if( lastEyeTarget != null ) //Genes.smth.smth
-                {
-                    //Legs.MoveTowardsTarget(eyeLastTarget);
-                    //Vector3 dirToTarget = (eyeLastTarget.position - Body.position).normalized;
-                    //Legs.HandleInput(dirToTarget.x, dirToTarget.z);
-                    //Legs.HandleInput(NeuralNetwork.Normalize(Output[ 2 ]), NeuralNetwork.Normalize(Output[ 3 ]));
-                    Legs.BabySteps(NeuralNetwork.Normalize(Output[ 2 ]) * 2, NeuralNetwork.Normalize(Output[ 3 ]) * 2);
-                }
+                var mat = HeadSphere.material;
+                mat.color = MovingHeadColor;
+                HeadSphere.material = mat;
             }
 
-            if ( speed < 1.15f )
+            if (Consumption > 0)
             {
-                UseEnergy(2.67f);
+                UseEnergy(Time.deltaTime / Consumption);
             }
+            else
+            {
+                UseEnergy(Time.deltaTime);
+            }
+
+            Legs.BabySteps(Output[0], Output[1]);
         }
     }
 
@@ -454,7 +479,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public float GetFittness()
     {
-        return (Distance + Age) * Consumption;
+        return (Distance + Age + topSpeed) * (Consumption + 0.01f );
     }
 
     public float GetTopSpeed()

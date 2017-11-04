@@ -93,7 +93,12 @@ public class FieldOfView : MonoBehaviour
 
                 if( !Physics.Raycast(Body.position, dirToTarget, dstToTarget, obstacleMask) )
                 {
-                    visibleTargets.Add(target);
+                    EntityController te = targetsInViewRadius[i].GetComponent<EntityController>();
+
+                    if (te == null || !te.isAlive())
+                    {
+                        visibleTargets.Add(target);
+                    }
                 }
             }
         }

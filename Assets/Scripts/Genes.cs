@@ -22,7 +22,7 @@ public class Genes
 
         protected float MutateValue(float value, float min = -0.5f, float max = 0.5f)
         {
-            float randomNumber = Random.Range(0f, 100f);
+            float randomNumber = Random.Range(0f, 1000f);
 
             if (randomNumber <= 2f)
             {
@@ -154,7 +154,7 @@ public class Genes
 
     public Movement Legs { get; internal set; }
     public Sight Eyes { get; internal set; }
-    public Smell Noze { get; private set; }
+    public Smell Noze { get; internal set; }
 
     public List<AMutateable> Chromosomes;
 

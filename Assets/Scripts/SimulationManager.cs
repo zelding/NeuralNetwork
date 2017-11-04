@@ -281,6 +281,14 @@ public class SimulationManager : MonoBehaviour
         {
             ClearHover();
         }
+
+        if ( TopDownCamera.enabled )
+        {
+            if ( Input.mouseScrollDelta.magnitude > 1 )
+            {
+                TopDownCamera.transform.position += Vector3.up * Input.mouseScrollDelta.y;
+            }
+        }
     }
 
     private void DetectKeyboardEvents()
@@ -325,12 +333,12 @@ public class SimulationManager : MonoBehaviour
 
         if( SelectedEntity.isAlive() )
         {
-            m.color = Color.red;
+            m.color = EntityController.SelectedAliveColor;
             SelectedEntity.EnableEyeLashes();
         }
         else
         {
-            m.color = new Color(0.67f, 0, 0, 1);
+            m.color = EntityController.SelectedDeadColor;
         }
 
         childRenderers.material = m;
@@ -359,11 +367,11 @@ public class SimulationManager : MonoBehaviour
 
             if( obj.isAlive() )
             {
-                m.color = Color.green;
+                m.color = EntityController.HoverAliveColor;
             }
             else
             {
-                m.color = new Color(0, 0.67f, 0, 1);
+                m.color = EntityController.HoverDeadColor;
             }
 
             m.color = Color.green;
@@ -396,11 +404,11 @@ public class SimulationManager : MonoBehaviour
         Material m = r.material;
         if( SelectedEntity.isAlive() )
         {
-            m.color = new Color(0, 0, 1, 1);
+            m.color = EntityController.AliveColor;
         }
         else
         {
-            m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+            m.color = EntityController.DeadColor;
         }
         r.material = m;
 
@@ -422,11 +430,11 @@ public class SimulationManager : MonoBehaviour
         Material m = r.material;
         if( HoveredEntity.isAlive() )
         {
-            m.color = new Color(0, 0, 1, 1);
+            m.color = EntityController.AliveColor;
         }
         else
         {
-            m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+            m.color = EntityController.DeadColor;
         }
 
         r.material = m;
