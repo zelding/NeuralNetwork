@@ -321,10 +321,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   BaseName: 
-  Legs:
-    velocity: 0
-    turnSpeed: 0
-    obstacleLayer: []
   Eye: {fileID: 0}
   Nose: {fileID: 0}
   Body: {fileID: 0}
@@ -334,7 +330,8 @@ MonoBehaviour:
   revision: 0
   AllowRender: 0
   Immortal: 0
-  Maxenergy: 1000
+  MaxEnergy: 500
+  FeedingTimer: 10
   NeuStr: '|4|'
   lastNoseTartget: {fileID: 0}
   lastEyeTarget: {fileID: 0}

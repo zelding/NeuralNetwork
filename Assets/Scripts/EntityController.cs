@@ -35,9 +35,13 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public bool Immortal = false;
 
     [Range(500f, 5000f)]
-    public float Maxenergy;
+    public float MaxEnergy;
+
+    [Range(10, 100)]
+    public float FeedingTimer;
 
     private float Energy;
+    private float CurrrentFeedingTimer;
 
     public float[] Output { get; private set; }
     public float[] Input { get; set; }
@@ -119,6 +123,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         return speed;
     }
 
+    public float GetHunger()
+    {
+        return CurrrentFeedingTimer;
+    }
+
     private void OnDisable()
     {
         DisableEyeLashes();
@@ -146,7 +155,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
         Age = 0;
 
-        Energy = Maxenergy;
+        Energy = MaxEnergy;
+        CurrrentFeedingTimer = FeedingTimer;
 
         displacement = 0;
         speed = 0;
@@ -216,7 +226,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 eyeInput.z,
                 noseInput.x,
                 noseInput.z,
-                ((Energy / Maxenergy) - 0.5f) * 2
+                ((Energy / MaxEnergy) - 0.5f) * 2
             };
 
             Output = Brain.FeedForward(Input);
@@ -226,6 +236,28 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             Distance += Vector3.Distance(lastPosition, transform.position);
             displacement += Vector3.Distance(lastPosition, transform.position);
             lastPosition = transform.position;
+
+            if (speed < 2.67f)
+            {
+                var mat = HeadSphere.material;
+                mat.color = StillHeadColor;
+                HeadSphere.material = mat;
+            }
+            else
+            {
+                var mat = HeadSphere.material;
+                mat.color = MovingHeadColor;
+                HeadSphere.material = mat;
+            }
+
+            if (CurrrentFeedingTimer <= 0)
+            {
+                UseEnergy(Time.deltaTime * 5);
+            }
+            else
+            {
+                CurrrentFeedingTimer -= Time.deltaTime;
+            }
         }
         else
         {
@@ -234,7 +266,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 Renderer r = GetComponent<Renderer>();
 
                 Material m = r.material;
-                m.color = new Color(0.2f, 0.2f, 0.2f, 0.7f);
+                m.color = DeadColor;
                 r.material = m;
 
                 markedAsDead = true;
@@ -274,8 +306,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
                     otherFish.enabled = false;
                     otherFish.eaten = true;
-                    GainEnergy(200);
-                    Consumption += 10;
+                    GainEnergy(100);
+                    Consumption += 2;
+                    otherFish.transform.position += new Vector3(0, -1000, 0);
+
+                    CurrrentFeedingTimer += FeedingTimer * 2;
                 }
             }
 
@@ -293,6 +328,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                     food.enabled = false;
                     Destroy(food);
                     Destroy(food.gameObject);
+                    CurrrentFeedingTimer += FeedingTimer;
                 }
             }
         }
@@ -307,29 +343,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             if ( speed > topSpeed ) {
                 topSpeed = speed;
-            }
-
-            if ( speed < 2.67f )
-            {
-                var mat = HeadSphere.material;
-                mat.color = StillHeadColor;
-                HeadSphere.material = mat;
-                UseEnergy(0.67f);
-            }
-            else
-            {
-                var mat = HeadSphere.material;
-                mat.color = MovingHeadColor;
-                HeadSphere.material = mat;
-            }
-
-            if (Consumption > 0)
-            {
-                UseEnergy(Time.deltaTime / Consumption);
-            }
-            else
-            {
-                UseEnergy(Time.deltaTime);
             }
 
             Legs.BabySteps(Output[0], Output[1]);

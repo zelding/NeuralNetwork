@@ -62,11 +62,6 @@ public class FoodController : MonoBehaviour {
     void Start () {
         ID = Random.Range(-10000f, 10000).ToString();
 
-        stench.radius = StandardMaxRadius / transform.localScale.x;
-
-        CurrentRadius = stench.radius;
-        MaxRadius = StandardMaxRadius;
-
         Cycle = 0;
         nearbyFood = 0;
         veryCloseFood = 0;
@@ -74,7 +69,11 @@ public class FoodController : MonoBehaviour {
         if( EnableBubleing )
         {
             Bubbling = StartCoroutine(Buble(Time.fixedDeltaTime));
+            stench.radius = StandardMaxRadius / transform.localScale.x;
         }
+
+        CurrentRadius = stench.radius;
+        MaxRadius = StandardMaxRadius;
 
         lastDirection = Vector3.zero;
     }

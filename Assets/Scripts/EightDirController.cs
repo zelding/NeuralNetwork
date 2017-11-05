@@ -4,7 +4,6 @@
 /// 1. 8 dir movement
 /// 2. stop and face camera
 /// </summary>
-[System.Serializable]
 public class EightDirController {
 
     public float velocity  = 5f;
@@ -83,22 +82,20 @@ public class EightDirController {
 
     public void BabySteps(float x, float y)
     {
-        float moveX = x > 0.334f ? x : x < -0.334f ? x : 0;
-        float moveY = y > 0.334f ? y : y < -0.334f ? y : 0;
+        float moveX = x > 0.147f ? x : x < -0.147f ? x : 0;
+        float moveY = y > 0.147f ? y : y < -0.147f ? y : 0;
         
         angle = Mathf.Atan2(moveX, moveY);
         angle *= Mathf.Rad2Deg; //convert to degrees
-        //angle += entity.transform.rotation.eulerAngles.y;
+        angle += entity.transform.rotation.eulerAngles.y;
 
         targetRotation = Quaternion.Euler(0, angle, 0);
         Quaternion rotationVector = Quaternion.Slerp(entity.transform.rotation, targetRotation, turnSpeed * Time.fixedDeltaTime);
 
-        Vector3 targetPos = new Vector3(moveX, 0, moveY).normalized;
-        currentVelocity += targetPos;
-
         entity.transform.rotation = rotationVector;
-        body.MovePosition(entity.transform.position + currentVelocity.normalized * velocity * Time.fixedDeltaTime);
-        currentVelocity = Vector3.zero;
+        //body.MovePosition(entity.transform.position + new Vector3(moveX, 0, moveY) * velocity * Time.fixedDeltaTime);
+
+        entity.transform.position += (entity.transform.forward + new Vector3(moveX, 0, moveY)) * velocity * Time.deltaTime;
     }
 
     /// <summary>

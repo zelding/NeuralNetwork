@@ -15,6 +15,7 @@ public class EntityInfoRenderer : MonoBehaviour {
     public Text txt_fittness;
     public Text txt_topSpeed;
     public Text txt_speed;
+    public Text txt_hunger;
    
     public Text txt_input;
     public Text txt_output;
@@ -28,9 +29,10 @@ public class EntityInfoRenderer : MonoBehaviour {
                 EntityController tmp = SelectedEntity as EntityController;
 
                 if( tmp != null && tmp.enabled ) {
-                    txt_input.text = "Input: " + JoinArray(Array.ConvertAll(tmp.Input, new Converter<float, string>(FloatFToString)));
+                    txt_input.text = "Input: "   + JoinArray(Array.ConvertAll(tmp.Input, new Converter<float, string>(FloatFToString)));
                     txt_output.text = "Output: " + JoinArray(Array.ConvertAll(tmp.Output, new Converter<float, string>(FloatFToString)));
-                    txt_speed.text = "Speed: " + tmp.GetSpeed().ToString("0.00");
+                    txt_speed.text = "Speed: "   + tmp.GetSpeed().ToString("0.00");
+                    txt_hunger.text = "Hunger: " + tmp.GetHunger().ToString("0.00");
                 }
             }
 
