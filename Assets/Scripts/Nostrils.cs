@@ -16,7 +16,6 @@ public class Nostrils : MonoBehaviour
     float viewRadius;
 
     EntityController entity;
-    Coroutine scanning;
 
     private void Awake()
     {
@@ -30,7 +29,7 @@ public class Nostrils : MonoBehaviour
 
         if( targetMask != 0 && obstacleMask != 0 )
         {
-            scanning = StartCoroutine("FindTargetsWithDelay", Time.fixedDeltaTime);
+            StartCoroutine("FindTargetsWithDelay", Time.fixedDeltaTime);
         }
     }
 

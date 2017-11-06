@@ -25,6 +25,7 @@ GameObject:
   - component: {fileID: 23327391811904740}
   - component: {fileID: 54439041649938910}
   - component: {fileID: 114173241028366258}
+  - component: {fileID: 114424745931302814}
   m_Layer: 11
   m_Name: Food
   m_TagString: Food
@@ -54,7 +55,6 @@ MeshRenderer:
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
@@ -70,7 +70,6 @@ MeshRenderer:
   m_PreserveUVs: 1
   m_IgnoreNormalsForChartDetection: 0
   m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
   m_SelectedEditorRenderState: 3
   m_MinimumChartSize: 4
   m_AutoUVMaxDistance: 0.5
@@ -94,20 +93,20 @@ Rigidbody:
   m_GameObject: {fileID: 1754053334894224}
   serializedVersion: 2
   m_Mass: 5
-  m_Drag: 0.3
-  m_AngularDrag: 0.15
-  m_UseGravity: 1
+  m_Drag: 0
+  m_AngularDrag: 0
+  m_UseGravity: 0
   m_IsKinematic: 0
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_Constraints: 4
-  m_CollisionDetection: 2
+  m_CollisionDetection: 1
 --- !u!114 &114173241028366258
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1754053334894224}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc5a4c4c7da1e4545a10100e98685e83, type: 3}
   m_Name: 
@@ -124,6 +123,18 @@ MonoBehaviour:
   Nearby: 0
   Close: 0
   stench: {fileID: 0}
+--- !u!114 &114424745931302814
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1754053334894224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f66e746b478c8419614f3910aea7a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rb: {fileID: 0}
 --- !u!135 &135134325895381942
 SphereCollider:
   m_ObjectHideFlags: 1

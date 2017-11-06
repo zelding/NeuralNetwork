@@ -7,6 +7,8 @@ TagManager:
   - Wall
   - Fish
   - Food
+  - eye
+  - GOD
   layers:
   - Default
   - TransparentFX

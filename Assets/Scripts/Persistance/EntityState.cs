@@ -2,7 +2,6 @@
 public class EntityState : EntityInfo
 {
     string Name;
-    string NeuStr;
 
     NeuralNetwork Brain;
     Genes Genes;
@@ -20,7 +19,6 @@ public class EntityState : EntityInfo
 
         Energy      = 0;
         Name        = entity.Name;
-        NeuStr      = Brain.lineage;
         Age         = entity.Age;
         Distance    = entity.Distance;
         Consumption = entity.Consumption;
@@ -31,10 +29,6 @@ public class EntityState : EntityInfo
 
     public string GetName(){
         return Name;
-    }
-
-    public string GetNeuronString() {
-        return NeuStr;
     }
 
     public NeuralNetwork GetBrain() {
@@ -79,8 +73,6 @@ public class EntityState : EntityInfo
 
 public interface EntityInfo {
     string GetName();
-
-    string GetNeuronString();
 
     NeuralNetwork GetBrain();
 

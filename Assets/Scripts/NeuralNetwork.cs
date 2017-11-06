@@ -22,7 +22,6 @@ public class NeuralNetwork
     public float[][][] weights;
     public float[][][] biases;
 
-    public string lineage = "";
     public uint gen       = 0;
 
     public static float Normalize( float value )
@@ -41,7 +40,6 @@ public class NeuralNetwork
         this.historyEnabled =  historyEnabled;
         gen = 1;
         mutationsCount = 0;
-        lineage = "|" + layers.Length + "|";
 
         this.layers = new int[ layers.Length ];
 
@@ -92,13 +90,11 @@ public class NeuralNetwork
         {
             gen = copyME.gen + 1;
             mutationsCount = 0;
-            lineage = copyME.lineage + "" + gen + "|";
             Mutate();
         }
         else {
             gen = copyME.gen;
             mutationsCount = copyME.mutationsCount;
-            lineage = copyME.lineage;
         }
     }
 

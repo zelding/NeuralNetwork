@@ -39,7 +39,6 @@ public class EntityInfoRenderer : MonoBehaviour {
             txt_entity_name.text     = "Entity name: " + SelectedEntity.GetName();
             txt_entity_energy.text   = "Energy: "      + SelectedEntity.GetEnergy().ToString("0.00");
             txt_entity_age.text      = "Age: "         + SelectedEntity.GetAge().ToString("0.00");
-            txt_generation.text      = "Generation: "  + SelectedEntity.GetBrain().gen + " => " + SelectedEntity.GetBrain().lineage;
 
             txt_entity_distance.text = "Distance: "    + SelectedEntity.GetDistance().ToString("0.00");
             txt_entity_food.text     = "Eaten: "       + SelectedEntity.GetConsumption().ToString("0.00");

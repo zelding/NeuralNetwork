@@ -24,6 +24,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public Nostrils Nose;
     public Transform Body;
     public Rigidbody Bones;
+    public LayerMask obstacleLayer;
 
     public int generation;
     public int variant;
@@ -58,10 +59,12 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private bool isInited = false;
 
     private Vector3 lastPosition;
-    private Vector3 guiLastPosition;
     private float displacement;
     private float speed;
     private float topSpeed;
+    private float wallInFront;
+    private float wallInLeft;
+    private float wallInRight;
 
     public Transform lastNoseTartget;
     public Transform lastEyeTarget;
@@ -71,12 +74,15 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     private MeshRenderer HeadSphere;
 
+    private SimulationManager GOD;
+
     public void Awake()
     {
         Eye  = GetComponentInChildren<FieldOfView>();
         Body = GetComponent<Transform>();
         Nose = GetComponentInChildren<Nostrils>();
         Bones = GetComponent<Rigidbody>();
+        GOD = FindObjectOfType<SimulationManager>();
 
         noseTargetIndex = 0;
         eyeTargetIndex = 0;
@@ -119,7 +125,13 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         isInited = true;
     }
 
-    public float GetSpeed() {
+    public EntityState GetSnapshot()
+    {
+        return new EntityState(this);
+    }
+
+    public float GetSpeed()
+    {
         return speed;
     }
 
@@ -128,24 +140,18 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         return CurrrentFeedingTimer;
     }
 
-    private void OnDisable()
-    {
-        DisableEyeLashes();
-    }
-
     // Use this for initialization
     void Start()
     {
         if( !isInited )
         {
             Genes = new Genes();
-            Brain = new NeuralNetwork(new int[ 5 ] { 5, 15, 15, 15, 2 });
+            Brain = new NeuralNetwork(new int[ 5 ] { 8, 15, 15, 15, 2 });
             Legs = new EightDirController(this);
 
             Name = BaseName = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
         }
 
-        NeuStr = Brain.lineage;
         Distance = 0f;
         Consumption = 0f;
 
@@ -161,7 +167,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         displacement = 0;
         speed = 0;
         topSpeed = 0;
-        guiLastPosition = lastPosition = transform.position;
     }
 
     // Update is called once per frame
@@ -218,14 +223,16 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 noseInput = transform.InverseTransformDirection(noseInput);
             }
 
-            float noseTargetInput = Nose.visibleTargets.Count -1;
-            float eyeTargetInput  = Eye.visibleTargets.Count -1;
+            DetectObstaces();
 
-            Input = new float[ 5 ] {
+            Input = new float[ 8 ] {
                 eyeInput.x,
                 eyeInput.z,
                 noseInput.x,
                 noseInput.z,
+                wallInFront,
+                wallInLeft,
+                wallInRight,
                 ((Energy / MaxEnergy) - 0.5f) * 2
             };
 
@@ -239,7 +246,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             if (speed < 2.67f)
             {
-                var mat = HeadSphere.material;
+                Material mat = HeadSphere.material;
                 mat.color = StillHeadColor;
                 HeadSphere.material = mat;
             }
@@ -258,6 +265,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             {
                 CurrrentFeedingTimer -= Time.deltaTime;
             }
+
+            Legs.HandleInput(Output[ 0 ], Output[ 1 ]);
         }
         else
         {
@@ -270,6 +279,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 r.material = m;
 
                 markedAsDead = true;
+                enabled = false;
             }
 
             if ( Eye.enabled ) {
@@ -292,6 +302,19 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         }
     }
 
+    void OnEnable() 
+    {
+        //register myself at GOD
+        GOD.RegisterNewEntity(this);
+    }
+
+    void OnDisable()
+    {
+        //unregister at GOD
+        DisableEyeLashes();
+        GOD.UnRegisterEntity(this);
+    }
+
     void OnCollisionEnter( Collision collision )
     {
         if( Energy > 0 )
@@ -302,8 +325,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
                 if( otherFish != null && !otherFish.isAlive() && !otherFish.eaten )
                 {
-                    //Debug.Log(Name + " ate " + otherFish.Name);
-
                     otherFish.enabled = false;
                     otherFish.eaten = true;
                     GainEnergy(100);
@@ -320,16 +341,16 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
                 if( food != null )
                 {
-                    //Debug.Log(Name + " ate a food");
-
                     GainEnergy(50);
                     Consumption += 1;
-
-                    food.enabled = false;
-                    Destroy(food);
-                    Destroy(food.gameObject);
+                    GOD.ReportFoodEaten(food);
                     CurrrentFeedingTimer += FeedingTimer;
                 }
+            }
+
+            if( collision.gameObject.tag == "Wall" ) {
+                Consumption /= 2f;
+                UseEnergy(Energy);
             }
         }
     }
@@ -338,14 +359,16 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     {
         if( Energy > 0 )
         {
-            speed = (float)System.Math.Round(displacement / Time.fixedDeltaTime, 2);
-            displacement = 0;
+            if( displacement > 0 ) {
+                speed = (float) System.Math.Round(displacement / Time.fixedDeltaTime, 2);
+                displacement = 0;
+            }
 
             if ( speed > topSpeed ) {
                 topSpeed = speed;
             }
 
-            Legs.BabySteps(Output[0], Output[1]);
+            Legs.Move();
         }
     }
 
@@ -359,7 +382,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             if( lastNoseTartget != null )
             {
                 Gizmos.color = Color.red;
-                //Gizmos.DrawLine(lastNoseTartget.position, transform.position);
                 Gizmos.DrawWireSphere(lastNoseTartget.position, 4f);
                 Gizmos.DrawWireSphere(transform.position, Genes.Noze.range);
             }
@@ -378,7 +400,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             if( lastEyeTarget != null )
             {
                 Gizmos.color = Color.yellow;
-                //Gizmos.DrawLine(lastEyeTarget.position, transform.position);
                 Gizmos.DrawWireSphere(lastEyeTarget.position, 13f);
                 Gizmos.DrawWireSphere(transform.position, Genes.Eyes.range);
             }
@@ -394,13 +415,50 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 }
             }
 
-            Vector3 dir = (transform.position - guiLastPosition).normalized * Genes.Legs.speed * 15;
-
             Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(guiLastPosition, transform.position);
 
-            //Gizmos.DrawRay(guiLastPosition, transform.position);
-            guiLastPosition = transform.position;
+            if ( wallInFront > 0 ) {
+                Vector3 frwrd = transform.position + (transform.forward * Genes.Eyes.range);
+                Gizmos.DrawLine(transform.position, frwrd);
+            }
+
+            if( wallInLeft > 0 ) {
+                Vector3 left = Eye.DirFromAngle(-45, false);
+                Gizmos.DrawLine(transform.position, transform.position + left * Genes.Eyes.range);
+            }
+
+            if ( wallInRight > 0f ) {
+                Vector3 right = Eye.DirFromAngle(45, false);
+                Gizmos.DrawLine(transform.position, transform.position + right * Genes.Eyes.range);
+            }
+        }
+    }
+
+    private void DetectObstaces()
+    {
+        RaycastHit hit;
+        Vector3 rightVector = Quaternion.AngleAxis(45, transform.up) * transform.forward;
+        Vector3 leftVector  = Quaternion.AngleAxis(-45, transform.up) * transform.forward;
+
+        if( Physics.Raycast(transform.position, transform.forward, out hit, Genes.Eyes.range, obstacleLayer) ) {
+            wallInFront = 1;
+        }
+        else {
+            wallInFront = 0;
+        }
+
+        if( Physics.Raycast(transform.position, leftVector, out hit, Genes.Eyes.range, obstacleLayer) ) {
+            wallInLeft = 1;
+        }
+        else {
+            wallInLeft = 0;
+        }
+
+        if( Physics.Raycast(transform.position, rightVector, out hit, Genes.Eyes.range, obstacleLayer) ) {
+            wallInRight = 1;
+        }
+        else {
+            wallInRight = 0;
         }
     }
 
@@ -487,12 +545,12 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public bool isAlive()
     {
-        return Immortal || (!markedAsDead || Energy > 0); // yes
+        return Immortal || (!markedAsDead || Energy > 0);
     }
 
     public float GetFittness()
     {
-        return (Distance + Age + topSpeed) * (Consumption + 0.01f );
+        return GetAge() * GetConsumption();
     }
 
     public float GetTopSpeed()
