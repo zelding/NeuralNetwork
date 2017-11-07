@@ -24,10 +24,17 @@ public class NeuralNetwork
 
     public uint gen       = 0;
 
+    public string StructureId;
+
     public static float Normalize( float value )
     {
         return (float) System.Math.Tanh(value);
         //return (1.0f / (1.0f + Mathf.Pow(Mathf.Exp(1), -value)) - 0.5f) * 2;
+    }
+
+    public static string IntToString( int f )
+    {
+        return f.ToString();
     }
 
     /// <summary>
@@ -40,6 +47,7 @@ public class NeuralNetwork
         this.historyEnabled =  historyEnabled;
         gen = 1;
         mutationsCount = 0;
+        StructureId = "|" + string.Join("-", System.Array.ConvertAll(layers, new System.Converter<int, string>(IntToString))) + "|";
 
         this.layers = new int[ layers.Length ];
 
@@ -91,10 +99,12 @@ public class NeuralNetwork
             gen = copyME.gen + 1;
             mutationsCount = 0;
             Mutate();
+            StructureId = "|" + string.Join("-", System.Array.ConvertAll(layers, new System.Converter<int, string>(IntToString))) + "|";
         }
         else {
             gen = copyME.gen;
             mutationsCount = copyME.mutationsCount;
+            StructureId = copyME.StructureId;
         }
     }
 

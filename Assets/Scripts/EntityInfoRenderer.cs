@@ -16,7 +16,9 @@ public class EntityInfoRenderer : MonoBehaviour {
     public Text txt_topSpeed;
     public Text txt_speed;
     public Text txt_hunger;
-   
+
+    public Text txt_brain_structure;
+
     public Text txt_input;
     public Text txt_output;
 	
@@ -36,9 +38,10 @@ public class EntityInfoRenderer : MonoBehaviour {
                 }
             }
 
-            txt_entity_name.text     = "Entity name: " + SelectedEntity.GetName();
-            txt_entity_energy.text   = "Energy: "      + SelectedEntity.GetEnergy().ToString("0.00");
-            txt_entity_age.text      = "Age: "         + SelectedEntity.GetAge().ToString("0.00");
+            txt_entity_name.text     = "Entity name: "    + SelectedEntity.GetName();
+            txt_entity_energy.text   = "Energy: "         + SelectedEntity.GetEnergy().ToString("0.00");
+            txt_entity_age.text      = "Age: "            + SelectedEntity.GetAge().ToString("0.00");
+            txt_brain_structure.text = "BrainStructure: " + SelectedEntity.GetBrain().StructureId;
 
             txt_entity_distance.text = "Distance: "    + SelectedEntity.GetDistance().ToString("0.00");
             txt_entity_food.text     = "Eaten: "       + SelectedEntity.GetConsumption().ToString("0.00");

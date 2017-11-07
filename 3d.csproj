@@ -97,6 +97,7 @@
     <Compile Include="Assets\Scripts\Persistance\EntityState.cs" />
     <Compile Include="Assets\Scripts\Sensor.cs" />
     <Compile Include="Assets\Scripts\SimulationManager.cs" />
+    <Compile Include="Assets\Scripts\Sonar.cs" />
     <Compile Include="Assets\Scripts\ThirdPersonCameraController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

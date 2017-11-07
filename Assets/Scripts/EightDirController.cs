@@ -33,7 +33,7 @@ public class EightDirController {
         currentVelocity = Vector3.zero;
     }
 
-    public void HandleInput(float x, float y)
+    public void HandleInput(float x, float y, float t)
     {
         Vector3 inputDirection = new Vector3(x, 0, y).normalized;
         float inputMagnitude = inputDirection.magnitude;
@@ -42,7 +42,7 @@ public class EightDirController {
         float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg;
         angle = Mathf.LerpAngle(angle, targetAngle, Time.deltaTime * turnSpeed * inputMagnitude);
 
-        currentVelocity = entity.transform.forward * velocity * smoothInputMagnitude;
+        currentVelocity = entity.transform.forward * velocity * smoothInputMagnitude * t;
     }
 
     public void Move()

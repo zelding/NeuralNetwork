@@ -5,6 +5,9 @@ using Assets.Scripts.Math;
 
 public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
+    public const int NumberOfInputs  = 8;
+    public const int NumberOfOutputs = 3;
+
     public static Color AliveColor = new Color(0, 0,1, 1);
     public static Color DeadColor = new Color(0.2f, 0.2f, 0.2f, 0.7f);
     public static Color SelectedAliveColor = new Color(1, 0, 0, 1);
@@ -22,9 +25,9 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public EightDirController Legs;
     public FieldOfView Eye;
     public Nostrils Nose;
+    public Sonar Ears;
     public Transform Body;
     public Rigidbody Bones;
-    public LayerMask obstacleLayer;
 
     public int generation;
     public int variant;
@@ -62,9 +65,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private float displacement;
     private float speed;
     private float topSpeed;
-    private float wallInFront;
-    private float wallInLeft;
-    private float wallInRight;
 
     public Transform lastNoseTartget;
     public Transform lastEyeTarget;
@@ -78,14 +78,15 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public void Awake()
     {
-        Eye  = GetComponentInChildren<FieldOfView>();
-        Body = GetComponent<Transform>();
-        Nose = GetComponentInChildren<Nostrils>();
+        Eye   = GetComponentInChildren<FieldOfView>();
+        Body  = GetComponent<Transform>();
+        Nose  = GetComponentInChildren<Nostrils>();
+        Ears  = GetComponentInChildren<Sonar>();
         Bones = GetComponent<Rigidbody>();
-        GOD = FindObjectOfType<SimulationManager>();
+        GOD   = FindObjectOfType<SimulationManager>();
 
         noseTargetIndex = 0;
-        eyeTargetIndex = 0;
+        eyeTargetIndex  = 0;
 
         MeshRenderer[] mr = GetComponentsInChildren<MeshRenderer>();
 
@@ -146,7 +147,18 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( !isInited )
         {
             Genes = new Genes();
-            Brain = new NeuralNetwork(new int[ 5 ] { 8, 15, 15, 15, 2 });
+
+            List<int> brainStructure = new List<int>();
+
+            brainStructure.Add(NumberOfInputs);
+
+            foreach(int layerLength in Genes.Brain.neuronsInHiddenLayers ) {
+                brainStructure.Add(layerLength);
+            }
+
+            brainStructure.Add(NumberOfOutputs);
+
+            Brain = new NeuralNetwork(brainStructure.ToArray());
             Legs = new EightDirController(this);
 
             Name = BaseName = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
@@ -155,7 +167,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         Distance = 0f;
         Consumption = 0f;
 
-        Output = new float[ Brain.layers[ Brain.layers.Length - 1] ];
+        Output = new float[ NumberOfOutputs ];
 
         name = "Fish " + Name;
 
@@ -223,16 +235,16 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 noseInput = transform.InverseTransformDirection(noseInput);
             }
 
-            DetectObstaces();
+            Vector3 EarsData = Ears.GetData();
 
-            Input = new float[ 8 ] {
+            Input = new float[ NumberOfInputs ] {
                 eyeInput.x,
                 eyeInput.z,
                 noseInput.x,
                 noseInput.z,
-                wallInFront,
-                wallInLeft,
-                wallInRight,
+                EarsData.x,
+                EarsData.y,
+                EarsData.z,
                 ((Energy / MaxEnergy) - 0.5f) * 2
             };
 
@@ -252,7 +264,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             }
             else
             {
-                var mat = HeadSphere.material;
+                Material mat = HeadSphere.material;
                 mat.color = MovingHeadColor;
                 HeadSphere.material = mat;
             }
@@ -266,7 +278,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 CurrrentFeedingTimer -= Time.deltaTime;
             }
 
-            Legs.HandleInput(Output[ 0 ], Output[ 1 ]);
+            Legs.HandleInput(Output[ 0 ], Output[ 1 ], Output[2]);
         }
         else
         {
@@ -417,48 +429,22 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             Gizmos.color = Color.cyan;
 
-            if ( wallInFront > 0 ) {
+            Vector3 EarsData = Ears.GetData();
+
+            if ( EarsData.y > 0 ) {
                 Vector3 frwrd = transform.position + (transform.forward * Genes.Eyes.range);
                 Gizmos.DrawLine(transform.position, frwrd);
             }
 
-            if( wallInLeft > 0 ) {
+            if( EarsData.x > 0 ) {
                 Vector3 left = Eye.DirFromAngle(-45, false);
                 Gizmos.DrawLine(transform.position, transform.position + left * Genes.Eyes.range);
             }
 
-            if ( wallInRight > 0f ) {
+            if ( EarsData.z > 0f ) {
                 Vector3 right = Eye.DirFromAngle(45, false);
                 Gizmos.DrawLine(transform.position, transform.position + right * Genes.Eyes.range);
             }
-        }
-    }
-
-    private void DetectObstaces()
-    {
-        RaycastHit hit;
-        Vector3 rightVector = Quaternion.AngleAxis(45, transform.up) * transform.forward;
-        Vector3 leftVector  = Quaternion.AngleAxis(-45, transform.up) * transform.forward;
-
-        if( Physics.Raycast(transform.position, transform.forward, out hit, Genes.Eyes.range, obstacleLayer) ) {
-            wallInFront = 1;
-        }
-        else {
-            wallInFront = 0;
-        }
-
-        if( Physics.Raycast(transform.position, leftVector, out hit, Genes.Eyes.range, obstacleLayer) ) {
-            wallInLeft = 1;
-        }
-        else {
-            wallInLeft = 0;
-        }
-
-        if( Physics.Raycast(transform.position, rightVector, out hit, Genes.Eyes.range, obstacleLayer) ) {
-            wallInRight = 1;
-        }
-        else {
-            wallInRight = 0;
         }
     }
 
