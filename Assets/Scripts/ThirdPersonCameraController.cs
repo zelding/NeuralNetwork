@@ -20,6 +20,8 @@ public class ThirdPersonCameraController : MonoBehaviour
     private Vector3 targetPos;
     private bool smoothRotating = false;
 
+    private Vector3 turning;
+
     private void Start()
     {
         if ( Target != null )
@@ -56,6 +58,11 @@ public class ThirdPersonCameraController : MonoBehaviour
             destination += Target.position;
 
             Followingcamera.transform.position = destination;
+
+            /*Vector3 dest = Target.position;
+            dest += Quaternion.Euler(67f,0, 0) * Target.rotation * -Vector3.forward * 100;
+
+            transform.position = Vector3.SmoothDamp(transform.position, dest, ref turning, 0.3f);*/
         }
     }
 
@@ -67,6 +74,9 @@ public class ThirdPersonCameraController : MonoBehaviour
         if (Target != null)
         {
             float angle = Mathf.SmoothDampAngle(Followingcamera.transform.rotation.eulerAngles.y, Target.rotation.eulerAngles.y, ref turnSpeed, 0.3f);
+            //Quaternion targetRotation = Quaternion.Euler(Followingcamera.transform.rotation.x, angle, 0);
+
+            //Followingcamera.transform.rotation = Quaternion.Slerp(Followingcamera.transform.rotation, Target.rotation * Followingcamera.transform.rotation, Time.fixedDeltaTime);
 
             Followingcamera.transform.rotation = Quaternion.Euler(Followingcamera.transform.rotation.x, angle, 0);
         }

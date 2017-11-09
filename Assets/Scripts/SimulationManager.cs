@@ -94,7 +94,7 @@ public class SimulationManager : MonoBehaviour
     {
         TopDownCamera.enabled = true;
         mainCameraPosition = TopDownCamera.transform.position;
-        mainCameraSize = TopDownCamera.orthographicSize;
+        mainCameraSize = TopDownCamera.transform.position.y;
 
         FollowingCamera.enabled = false;
         currentCamera = TopDownCamera;
@@ -140,11 +140,6 @@ public class SimulationManager : MonoBehaviour
             }
 
             FillMissingFood();
-        }
-
-        if( TopDownCamera.enabled ) {
-            TopDownCamera.orthographicSize   = mainCameraSize;
-            TopDownCamera.transform.position = mainCameraPosition;
         }
     }
 
@@ -295,7 +290,13 @@ public class SimulationManager : MonoBehaviour
         {
             if ( Input.mouseScrollDelta.magnitude > 0 )
             {
-                mainCameraSize -= Input.mouseScrollDelta.y * scrollSpeed;
+                mainCameraSize = Input.mouseScrollDelta.y * scrollSpeed;
+
+                if( TopDownCamera.enabled ) {
+                    //TopDownCamera.orthographicSize   = mainCameraSize;
+                    TopDownCamera.transform.position += Vector3.up * mainCameraSize;
+                    //TopDownCamera.transform.position = mainCameraPosition;
+                }
             }
         }
     }

@@ -247,29 +247,38 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             Age += Time.deltaTime;
 
-            Distance += Vector3.Distance(lastPosition, transform.position);
+            Vector3 baseOffset = transform.position;
+            float age  = Mathf.Clamp(Age / 25, 1, 25);
+            float step = Mathf.SmoothStep(age, age * 1.1f, Time.fixedDeltaTime);
+
+            //transform.position   += Vector3.up *  step;
+            transform.localScale = new Vector3(transform.localScale.x, step, transform.localScale.z);
+
+            Distance     += Vector3.Distance(lastPosition, transform.position);
             displacement += Vector3.Distance(lastPosition, transform.position);
+
             lastPosition = transform.position;
 
-            if (speed < 2.67f)
-            {
-                Material mat = HeadSphere.material;
-                mat.color = StillHeadColor;
-                HeadSphere.material = mat;
-            }
-            else
-            {
-                Material mat = HeadSphere.material;
-                mat.color = MovingHeadColor;
-                HeadSphere.material = mat;
+            if( HeadSphere != null ) {
+                //HeadSphere.transform.localScale = new Vector3(0.33334f, (1 / transform.parent.localScale.y), 0.33334f);
+               // HeadSphere.transform.position = Vector3.up * 0.33334f *  (1 / transform.root.localScale.y);
+
+                if( speed < 2.67f ) {
+                    Material mat = HeadSphere.material;
+                    mat.color = StillHeadColor;
+                    HeadSphere.material = mat;
+                }
+                else {
+                    Material mat = HeadSphere.material;
+                    mat.color = MovingHeadColor;
+                    HeadSphere.material = mat;
+                }
             }
 
-            if (CurrrentFeedingTimer <= 0)
-            {
+            if (CurrrentFeedingTimer <= 0) {
                 UseEnergy(Time.deltaTime * 5);
             }
-            else
-            {
+            else {
                 CurrrentFeedingTimer -= Time.deltaTime;
             }
 
@@ -367,11 +376,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         if( Energy > 0 )
         {
             if( displacement > 0 ) {
-                speed = (float) System.Math.Round(displacement / Time.fixedDeltaTime, 2);
+                speed = Mathf.Clamp((float) System.Math.Round(displacement / Time.fixedDeltaTime, 2), 0, 100);
                 displacement = 0;
             }
 
-            if ( speed > topSpeed ) {
+            if ( 100 > speed && speed > topSpeed ) {
                 topSpeed = speed;
             }
 
