@@ -37,6 +37,8 @@ public class NeuralNetwork
         return f.ToString();
     }
 
+	public NeuralNetwork() {}
+
     /// <summary>
     /// Number of neurons in a given layer
     /// </summary>
@@ -120,7 +122,7 @@ public class NeuralNetwork
     /// <summary>
     /// 
     /// </summary>
-    protected void InitNeurons()
+    protected virtual void InitNeurons()
     {
         List<float[]> neuronList = new List<float[]>();
 
@@ -137,7 +139,7 @@ public class NeuralNetwork
     /// <summary>
     /// 
     /// </summary>
-    protected float[][][] InitMatrix( float min = -0.5f, float max = 0.5f )
+	protected virtual float[][][] InitMatrix( float min = -0.5f, float max = 0.5f )
     {
         List<float[][]> list = new List<float[][]>();
 
@@ -173,7 +175,7 @@ public class NeuralNetwork
     /// </summary>
     /// <param name="copyData"></param>
     /// <returns></returns>
-    protected float[][][] CopyMatrix( float[][][] copyData )
+	protected virtual float[][][] CopyMatrix( float[][][] copyData )
     {
         float[][][] matrix = new float[copyData.Length][][];
 
@@ -204,7 +206,7 @@ public class NeuralNetwork
     /// </summary>
     /// <param name="inputs"></param>
     /// <returns></returns>
-    public float[] FeedForward( float[] inputs )
+	public virtual float[] FeedForward( float[] inputs )
     {
         if( inputs.Length != neurons[ 0 ].Length )
         {
@@ -237,7 +239,7 @@ public class NeuralNetwork
     /// <summary>
     /// 
     /// </summary>
-    public void Mutate()
+	public virtual void Mutate()
     {
         for( int i = 0; i < weights.Length; i++ )
         {
