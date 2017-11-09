@@ -1,12 +1,11 @@
 ﻿﻿﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Assets.Scripts.Math;
 
 public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
-    public const int NumberOfInputs  = 8;
-    public const int NumberOfOutputs = 3;
+    public const int NumberOfInputs  = 4;
+    public const int NumberOfOutputs = 2;
 
     public static Color AliveColor = new Color(0, 0,1, 1);
     public static Color DeadColor = new Color(0.2f, 0.2f, 0.2f, 0.7f);
@@ -20,7 +19,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public string Name { get; private set; }
     public string BaseName;
-    public NeuralNetwork Brain;
+    public VectorNet Brain;
     public Genes Genes;
     public EightDirController Legs;
     public FieldOfView Eye;
@@ -47,8 +46,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private float Energy;
     private float CurrrentFeedingTimer;
 
-    public float[] Output { get; private set; }
-    public float[] Input { get; set; }
+    public Vector3[] Output { get; private set; }
+    public Vector3[] Input { get; set; }
 
     public string NeuStr;
 
@@ -102,7 +101,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public void InheritFrom( EntityController entity )
     {
-        Brain = new NeuralNetwork(entity.Brain);
+        Brain = new VectorNet(entity.Brain);
         Genes = new Genes(entity.Genes);
         Legs = new EightDirController(this);
 
@@ -158,7 +157,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             brainStructure.Add(NumberOfOutputs);
 
-            Brain = new NeuralNetwork(brainStructure.ToArray());
+            Brain = new VectorNet(brainStructure.ToArray());
             Legs = new EightDirController(this);
 
             Name = BaseName = Collections.Names[ Random.Range(0, Collections.Names.Count) ];
@@ -167,7 +166,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         Distance = 0f;
         Consumption = 0f;
 
-        Output = new float[ NumberOfOutputs ];
+        Output = new Vector3[ NumberOfOutputs ];
 
         name = "Fish " + Name;
 
@@ -237,15 +236,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             Vector3 EarsData = Ears.GetData();
 
-            Input = new float[ NumberOfInputs ] {
-                eyeInput.x,
-                eyeInput.z,
-                noseInput.x,
-                noseInput.z,
-                EarsData.x,
-                EarsData.y,
-                EarsData.z,
-                ((Energy / MaxEnergy) - 0.5f) * 2
+            Input = new Vector3[ NumberOfInputs ] {
+                eyeInput,
+                noseInput,
+                EarsData,
+                new Vector3(((Energy / MaxEnergy) - 0.5f) * 2, 0, 0)
             };
 
             Output = Brain.FeedForward(Input);
@@ -278,7 +273,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 CurrrentFeedingTimer -= Time.deltaTime;
             }
 
-            Legs.HandleInput(Output[ 0 ], Output[ 1 ], Output[2]);
+            Legs.HandleInput(Output[0].x, Output[0].z, Output[0].magnitude);
         }
         else
         {

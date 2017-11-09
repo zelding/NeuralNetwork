@@ -14,7 +14,13 @@ public class EntityState : EntityInfo
 
     public EntityState( EntityController entity )
     {
-        Brain = new NeuralNetwork(entity.Brain, true);
+        if ( entity.Brain is VectorNet ) {
+            Brain = new VectorNet(entity.Brain, true);
+        }
+        else {
+            Brain = new NeuralNetwork(entity.Brain, true);
+        }
+
         Genes = new Genes(entity.Genes, true);
 
         Energy      = 0;
