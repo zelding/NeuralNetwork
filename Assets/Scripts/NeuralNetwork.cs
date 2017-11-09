@@ -64,7 +64,7 @@ public class NeuralNetwork
 
         InitNeurons();
         weights = InitMatrix();
-        biases = InitMatrix(-0.174f, 0.174f);
+        biases = InitMatrix(-0.125f, 0.125f);
 
         if( historyEnabled )
         {

@@ -3,10 +3,12 @@ using UnityEngine;
 
 public class Genes
 {
-    public interface IMutatable
+    public interface IMutatable //why is it public?
     {
         void Mutate();
     }
+
+    #region TYPES
 
     public abstract class Chromosome
     {
@@ -16,9 +18,12 @@ public class Genes
         public bool isMutated = false;
         public float dominance;
 
-        virtual internal void Mutate() {
+        virtual internal void Mutate()
+        {
             dominance = Random.Range(minDominance, maxDominance);
         }
+
+        //struct for data representation ?
 
         protected float MutateValue( float value, float min = -0.5f, float max = 0.5f )
         {
@@ -60,7 +65,9 @@ public class Genes
 
     public class NeuronStructure : Chromosome
     {
-        public const int maxHiddenLayers = 5;
+        public const int minHiddenLayers = 1;
+        public const int maxHiddenLayers = 3;
+        public const int minNeuronsInLayers = 8;
         public const int maxNeuronsInLayers = 32;
 
         internal int hiddenLayers;
@@ -68,11 +75,11 @@ public class Genes
 
         internal NeuronStructure()
         {
-            hiddenLayers = Mathf.RoundToInt(Random.Range(1, maxHiddenLayers));
+            hiddenLayers = Mathf.RoundToInt(Random.Range(minHiddenLayers, maxHiddenLayers));
             neuronsInHiddenLayers = new int[ hiddenLayers ];
 
             for( int i = 0; i < hiddenLayers; i++ ) {
-                neuronsInHiddenLayers[ i ] = Mathf.RoundToInt(Random.Range(1, maxNeuronsInLayers));
+                neuronsInHiddenLayers[ i ] = Mathf.RoundToInt(Random.Range(minNeuronsInLayers, maxNeuronsInLayers));
             }
         }
 
@@ -90,7 +97,7 @@ public class Genes
         {
             base.Mutate();
 
-            hiddenLayers = MutateValue(hiddenLayers, 1, maxHiddenLayers);
+            hiddenLayers = MutateValue(hiddenLayers, minHiddenLayers, maxHiddenLayers);
 
             int[] _neuronsInHiddenLayers = new int[ hiddenLayers ];
 
@@ -98,10 +105,10 @@ public class Genes
                 int oldLength = neuronsInHiddenLayers.Length;
 
                 if( i < oldLength ) {
-                    _neuronsInHiddenLayers[ i ] = MutateValue(neuronsInHiddenLayers[ i ], 1, maxNeuronsInLayers);
+                    _neuronsInHiddenLayers[ i ] = MutateValue(neuronsInHiddenLayers[ i ], minHiddenLayers, maxNeuronsInLayers);
                 }
                 else {
-                    _neuronsInHiddenLayers[ i ] = Mathf.RoundToInt(Random.Range(1, maxNeuronsInLayers));
+                    _neuronsInHiddenLayers[ i ] = Mathf.RoundToInt(Random.Range(minNeuronsInLayers, maxNeuronsInLayers));
                 }
             }
 
@@ -219,6 +226,8 @@ public class Genes
         }
     }
 
+    #endregion
+
     public Movement Legs { get; internal set; }
     public Hearing Ears { get; internal set; }
     public Smell Noze { get; internal set; }
@@ -275,5 +284,6 @@ public class Genes
 
         isMutated = Legs.isMutated || Eyes.isMutated || Noze.isMutated || Ears.isMutated ||Brain.isMutated;
     }
+
 }
 

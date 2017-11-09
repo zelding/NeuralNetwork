@@ -251,4 +251,22 @@ public class FieldOfView : MonoBehaviour
             pointB = _pointB;
         }
     }
+
+    public struct TargetData
+    {
+        public readonly Vector3 Position;
+        public readonly Quaternion Rotation;
+        public readonly float RelativeHealth;
+        public Vector3 Color; // (as<=>) typeof(Color)?
+        public readonly string Name;
+
+        public TargetData( Vector3 position, Quaternion rotation, float relativeHealth, Vector3 color, string name )
+        {
+            Position = position;
+            Rotation = rotation;
+            RelativeHealth = relativeHealth;
+            Color = color;
+            Name = name;
+        }
+    }
 }
