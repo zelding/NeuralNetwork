@@ -1,4 +1,5 @@
 ﻿﻿﻿using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
 /// 1. 8 dir movement
@@ -22,6 +23,8 @@ public class EightDirController {
     private float angle;
     private Quaternion targetRotation;
 
+    private List<Vector3> moveBuffer;
+
     public EightDirController( EntityController entity )
     {
         this.entity = entity;
@@ -30,24 +33,57 @@ public class EightDirController {
         velocity  = entity.Genes.Legs.speed;
         turnSpeed = entity.Genes.Legs.turnSpeed;
 
+        moveBuffer = new List<Vector3>();
+
         currentVelocity = Vector3.zero;
     }
 
     public void HandleInput(float x, float y, float t)
     {
-        Vector3 inputDirection = new Vector3(x, 0, y).normalized;
-        float inputMagnitude = inputDirection.magnitude;
-        smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, inputMagnitude, ref smoothMoveVelocity, smoothMoveTime);
+        if (moveBuffer.Count >= 5) {
 
-        float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg;
-        angle = Mathf.LerpAngle(angle, targetAngle, Time.deltaTime * turnSpeed * inputMagnitude);
+            Vector3 inputDirection = calcAvg(moveBuffer).normalized;
 
-        currentVelocity = entity.transform.forward * velocity * smoothInputMagnitude * t;
+            float inputMagnitude = inputDirection.magnitude;
+            smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, inputMagnitude, ref smoothMoveVelocity, smoothMoveTime);
+
+            float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg;
+            angle = Mathf.LerpAngle(angle, targetAngle, Time.deltaTime * turnSpeed * inputMagnitude);
+
+            currentVelocity = entity.transform.forward * velocity * smoothInputMagnitude * t;
+
+            moveBuffer.Clear();
+        }
+        else {
+            Vector3 inputDirection = new Vector3(x, 0, y).normalized;
+
+            moveBuffer.Add(inputDirection);
+        }
     }
 
     public void Move()
     {
         body.MoveRotation(Quaternion.Euler(Vector3.up * angle));
         body.MovePosition(body.position + currentVelocity * Time.deltaTime);
+    }
+
+    public Vector3 calcAvg(List<Vector3> list)
+    {
+        if (list.Count == 0) {
+            return Vector3.zero;
+        }
+
+        float x = 0;
+        float y = 0;
+        float z = 0;
+
+        foreach (Vector3 v in list) {
+            x += v.x;
+            y += v.y;
+            z += v.z;
+        }
+
+        float k = 1.0f / Mathf.Sqrt(x * x + y * y + z * z);
+        return new Vector3(x * k, y * k, z * k);
     }
 }

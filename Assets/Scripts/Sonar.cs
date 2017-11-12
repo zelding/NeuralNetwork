@@ -16,14 +16,21 @@ public class Sonar : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        entity   = GetComponentInParent<EntityController>();
+        entity = GetComponentInParent<EntityController>();
         scanning = StartCoroutine("FindTargetsWithDelay", 0.25f);
     }
 
     // Update is called once per frame
     void Update()
     {
-        DetectObstaces();
+        if (enabled) {
+            DetectObstaces();
+        }
+        else {
+            if (scanning != null) {
+                StopCoroutine(scanning);
+            }
+        }
     }
 
     public Vector3 GetData()
@@ -31,9 +38,9 @@ public class Sonar : MonoBehaviour
         return new Vector3(wallInLeft, wallInFront, wallInRight);
     }
 
-    IEnumerator FindTargetsWithDelay( float delay )
+    IEnumerator FindTargetsWithDelay(float delay)
     {
-        while( enabled ) {
+        while (enabled) {
             DetectObstaces();
             yield return new WaitForSeconds(delay);
         }
@@ -45,21 +52,21 @@ public class Sonar : MonoBehaviour
         Vector3 rightVector = Quaternion.AngleAxis(45, transform.up) * transform.forward;
         Vector3 leftVector = Quaternion.AngleAxis(-45, transform.up) * transform.forward;
 
-        if( Physics.Raycast(transform.position, transform.forward, out hit, entity.Genes.Ears.range, obstacleLayer) ) {
+        if (Physics.Raycast(transform.position, transform.forward, out hit, entity.Genes.Ears.range, obstacleLayer)) {
             wallInFront = hit.distance;
         }
         else {
             wallInFront = 0;
         }
 
-        if( Physics.Raycast(transform.position, leftVector, out hit, entity.Genes.Ears.range, obstacleLayer) ) {
+        if (Physics.Raycast(transform.position, leftVector, out hit, entity.Genes.Ears.range, obstacleLayer)) {
             wallInLeft = hit.distance;
         }
         else {
             wallInLeft = 0;
         }
 
-        if( Physics.Raycast(transform.position, rightVector, out hit, entity.Genes.Ears.range, obstacleLayer) ) {
+        if (Physics.Raycast(transform.position, rightVector, out hit, entity.Genes.Ears.range, obstacleLayer)) {
             wallInRight = hit.distance;
         }
         else {

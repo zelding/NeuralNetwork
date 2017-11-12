@@ -63,6 +63,44 @@ public class Genes
         }
     }
 
+    public class Skin : Chromosome
+    {
+        public const float minValue = 0.0f;
+        public const float maxValue = 1.0f;
+
+        internal float r;
+        internal float g;
+        internal float b;
+
+        public Skin() : base()
+        {
+            r = Random.Range(minValue, maxValue);
+            g = Random.Range(minValue, maxValue);
+            b = Random.Range(minValue, maxValue);
+        }
+
+        public Skin (Skin skin)
+        {
+            r = skin.r;
+            g = skin.g;
+            b = skin.b;
+        }
+
+        public Color GetColor()
+        {
+            return new Color(r, g, b);
+        }
+
+        internal override void Mutate()
+        {
+            base.Mutate();
+
+            r = MutateValue(r, minValue, maxValue);
+            g = MutateValue(g, minValue, maxValue);
+            b = MutateValue(b, minValue, maxValue);
+        }
+    }
+
     public class NeuronStructure : Chromosome
     {
         public const int minHiddenLayers = 1;
@@ -232,6 +270,7 @@ public class Genes
     public Hearing Ears { get; internal set; }
     public Smell Noze { get; internal set; }
     public Sight Eyes { get; internal set; }
+    public Skin Color { get; internal set; }
     public NeuronStructure Brain { get; internal set; }
 
     public List<Chromosome> Chromosomes;
@@ -240,18 +279,20 @@ public class Genes
 
     public Genes()
     {
-        Legs = new Movement();
-        Ears = new Hearing();
-        Noze = new Smell();
-        Eyes = new Sight();
+        Legs  = new Movement();
+        Ears  = new Hearing();
+        Noze  = new Smell();
+        Eyes  = new Sight();
         Brain = new NeuronStructure();
+        Color = new Skin();
 
         Chromosomes = new List<Chromosome> {
             Legs,
             Eyes,
             Noze,
             Ears,
-            Brain
+            Brain,
+            Color
         };
     }
 
@@ -262,13 +303,15 @@ public class Genes
         Noze = new Smell(genes.Noze);
         Eyes = new Sight(genes.Eyes);
         Brain = new NeuronStructure(genes.Brain);
+        Color = new Skin(genes.Color);
 
         Chromosomes = new List<Chromosome> {
             Legs,
             Eyes,
             Noze,
             Ears,
-            Brain
+            Brain,
+            Color
         };
 
         if( !copyOnly ) {
@@ -282,7 +325,7 @@ public class Genes
             c.Mutate();
         }
 
-        isMutated = Legs.isMutated || Eyes.isMutated || Noze.isMutated || Ears.isMutated ||Brain.isMutated;
+        isMutated = Legs.isMutated || Eyes.isMutated || Noze.isMutated || Ears.isMutated || Brain.isMutated || Color.isMutated;
     }
 
 }

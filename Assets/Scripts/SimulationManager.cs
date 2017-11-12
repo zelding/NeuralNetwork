@@ -33,7 +33,7 @@ public class SimulationManager : MonoBehaviour
     private Vector3 mainCameraPosition;
     private float mainCameraSize;
 
-    [ Range(0, 100)]
+    [Range(0, 100)]
     public int startingFishes = 50;
     public GameObject fishBody;
     [Range(0, 100)]
@@ -43,11 +43,11 @@ public class SimulationManager : MonoBehaviour
     private ThirdPersonCameraController thirdPersonCameraController;
 
     private float spawnBoundary = 430f;
-    private bool isRunning      = true;
-    public int Generation       = 0;
+    private bool isRunning = true;
+    public int Generation = 0;
 
     private bool cycleEntities = false;
-    private float lastCycle    = 0f;
+    private float lastCycle = 0f;
 
     public List<EntityController> AliveEntities;
     public List<EntityController> DeadEntities;
@@ -62,13 +62,13 @@ public class SimulationManager : MonoBehaviour
         AliveEntities.Add(entity);
     }
 
-    public void UnRegisterEntity( EntityController entity )
+    public void UnRegisterEntity(EntityController entity)
     {
         AliveEntities.Remove(entity);
         DeadEntities.Add(entity);
     }
 
-    public void ReportFoodEaten( FoodController food )
+    public void ReportFoodEaten(FoodController food)
     {
         Food.Remove(food);
         Destroy(food.gameObject);
@@ -79,13 +79,13 @@ public class SimulationManager : MonoBehaviour
         EntityInfoRenderer[] rr = FindObjectsOfType<EntityInfoRenderer>();
 
         if (rr.Length > 2) {
-            BestEntityInfoRenderer = rr[ 0 ];
-            EntityInfoRenderer = rr[ 1 ];
-            WorstEntityInfoRenderer= rr[ 2 ];
+            BestEntityInfoRenderer = rr[0];
+            EntityInfoRenderer = rr[1];
+            WorstEntityInfoRenderer = rr[2];
         }
         else {
-            BestEntityInfoRenderer = rr[ 0 ];
-            EntityInfoRenderer = rr[ rr.Length - 1 ];
+            BestEntityInfoRenderer = rr[0];
+            EntityInfoRenderer = rr[rr.Length - 1];
         }
     }
 
@@ -99,18 +99,20 @@ public class SimulationManager : MonoBehaviour
         FollowingCamera.enabled = false;
         currentCamera = TopDownCamera;
 
-        Generation     = 1;
-        AliveEntities  = new List<EntityController>();
-        DeadEntities   = new List<EntityController>();
-        Food           = new List<FoodController>();
-        WorstEntities  = new List<EntityState>();
-        BestEntities   = new List<EntityState>();
+        Generation = 1;
+        AliveEntities = new List<EntityController>();
+        DeadEntities = new List<EntityController>();
+        Food = new List<FoodController>();
+        WorstEntities = new List<EntityState>();
+        BestEntities = new List<EntityState>();
         MiddleEntities = new List<EntityState>();
 
         thirdPersonCameraController = GetComponent<ThirdPersonCameraController>();
         thirdPersonCameraController.enabled = false;
 
         CreateInitialPopulation();
+
+        Time.timeScale = 1;// NeuralNetwork.PHI;
     }
 
     // Update is called once per frame
@@ -124,18 +126,16 @@ public class SimulationManager : MonoBehaviour
     {
         isRunning = AliveEntities.Count > 0;
 
-        if( !isRunning )
-        {
-            if( DeadEntities.Count > 0 )
-            {
+        if (!isRunning) {
+            if (DeadEntities.Count > 0) {
                 CreateChildrenEntities();
 
-                BestEntityInfoRenderer.SelectedEntity  = BestEntities[ BestEntities.Count - 1 ];
-                WorstEntityInfoRenderer.SelectedEntity = WorstEntities[ WorstEntities.Count - 1 ];
+                BestEntityInfoRenderer.SelectedEntity = BestEntities[BestEntities.Count - 1];
+                WorstEntityInfoRenderer.SelectedEntity = WorstEntities[WorstEntities.Count - 1];
             }
         }
         else {
-            if ( SelectedEntity == null && EntityInfoRenderer.SelectedEntity != null ) {
+            if (SelectedEntity == null && EntityInfoRenderer.SelectedEntity != null) {
                 EntityInfoRenderer.SelectedEntity = null;
             }
 
@@ -153,27 +153,24 @@ public class SimulationManager : MonoBehaviour
                 " / " + Food.Count +
                 " / " + startingfood;
 
-        if( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null )
-        {
+        if (SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null) {
             EntityInfoRenderer.SelectedEntity = SelectedEntity;
         }
 
-        if( cycleEntities && lastCycle > 5f )
-        {
+        if (cycleEntities && lastCycle > 5f) {
             lastCycle = 0;
         }
-        else
-        {
+        else {
             lastCycle += Time.smoothDeltaTime;
         }
     }
 
     private void CreateInitialPopulation()
     {
-        for( int i = 0; i < startingFishes; i++ ) {
+        for (int i = 0; i < startingFishes; i++) {
             var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
-            while( IsCloseToOthers(startPosition) ) {
+            while (IsCloseToOthers(startPosition)) {
                 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
             };
 
@@ -200,35 +197,31 @@ public class SimulationManager : MonoBehaviour
 
         var nextGeneration = new List<EntityController>();
 
-        for( int i = middle; i < count; i++ )
-        {
-            for( int k = 0; k < 2; k++ )
-            {
+        for (int i = middle; i < count; i++) {
+            for (int k = 0; k < 2; k++) {
                 var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
-                do
-                {
+                do {
                     startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-                } while( IsCloseToOthers(startPosition) );
+                } while (IsCloseToOthers(startPosition));
 
-                GameObject       fish     = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
+                GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
                 EntityController fishSoul = fish.GetComponent<EntityController>();
 
                 Vector3 euler = fish.transform.eulerAngles;
                 euler.y = Random.Range(-180f, 180f);
                 fish.transform.eulerAngles = euler;
 
-                fishSoul.InheritFrom(DeadEntities[ i ]);
+                fishSoul.InheritFrom(DeadEntities[i]);
                 nextGeneration.Add(fishSoul);
             }
         }
 
-        WorstEntities.Add(DeadEntities[ 0 ].GetSnapshot());
-        BestEntities.Add(DeadEntities[ count - 1 ].GetSnapshot());
-        MiddleEntities.Add(DeadEntities[ middle ].GetSnapshot());
+        WorstEntities.Add(DeadEntities[0].GetSnapshot());
+        BestEntities.Add(DeadEntities[count - 1].GetSnapshot());
+        MiddleEntities.Add(DeadEntities[middle].GetSnapshot());
 
-        foreach( EntityController entity in DeadEntities )
-        {
+        foreach (EntityController entity in DeadEntities) {
             Destroy(entity.gameObject);
         }
 
@@ -243,8 +236,8 @@ public class SimulationManager : MonoBehaviour
     {
         int food = FindObjectsOfType<FoodController>().Length;
 
-        if( food < startingfood ) {
-            for( int i = 0; i < startingfood - food; i++ ) {
+        if (food < startingfood) {
+            for (int i = 0; i < startingfood - food; i++) {
                 var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
                 Instantiate(foodBody, startPosition, Quaternion.identity, foodList.transform);
@@ -259,40 +252,32 @@ public class SimulationManager : MonoBehaviour
         Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if( Physics.Raycast(ray, out hit, EntityLayer) )
-        {
+        if (Physics.Raycast(ray, out hit, EntityLayer)) {
             GameObject HoveredGameObject = hit.transform.gameObject;
 
             EntityController foundFish = HoveredGameObject.GetComponent<EntityController>();
 
-            if( foundFish != null )
-            {
-                if( Input.GetMouseButtonDown(0) )
-                {
+            if (foundFish != null) {
+                if (Input.GetMouseButtonDown(0)) {
                     SelectFish(foundFish);
                 }
-                else
-                {
+                else {
                     HoverSelectable(foundFish);
                 }
             }
-            else
-            {
+            else {
                 ClearHover();
             }
         }
-        else
-        {
+        else {
             ClearHover();
         }
 
-        if ( TopDownCamera.enabled )
-        {
-            if ( Input.mouseScrollDelta.magnitude > 0 )
-            {
+        if (TopDownCamera.enabled) {
+            if (Input.mouseScrollDelta.magnitude > 0) {
                 mainCameraSize = Input.mouseScrollDelta.y * scrollSpeed;
 
-                if( TopDownCamera.enabled ) {
+                if (TopDownCamera.enabled) {
                     //TopDownCamera.orthographicSize   = mainCameraSize;
                     TopDownCamera.transform.position += Vector3.up * mainCameraSize;
                     //TopDownCamera.transform.position = mainCameraPosition;
@@ -303,43 +288,39 @@ public class SimulationManager : MonoBehaviour
 
     private void DetectKeyboardEvents()
     {
-        if( Input.GetKeyDown(KeyCode.F1) || (Input.GetMouseButtonDown(1) && FollowingCamera.enabled) )
-        {
+        if (Input.GetKeyDown(KeyCode.F1) || (Input.GetMouseButtonDown(1) && FollowingCamera.enabled)) {
             ActivateTopDownCamera();
         }
 
-        if( Input.GetKeyDown(KeyCode.F2) || (Input.GetMouseButtonDown(1) && TopDownCamera.enabled) )
-        {
+        if (Input.GetKeyDown(KeyCode.F2) || (Input.GetMouseButtonDown(1) && TopDownCamera.enabled)) {
             ActivateFollowerCamera();
         }
 
-        if( Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(2) )
-        {
+        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(2)) {
             ActivateTopDownCamera();
             ClearSelection();
         }
 
-        if( TopDownCamera.enabled ) {
-            if( Input.GetAxisRaw("Horizontal") != 0 ) {
+        if (TopDownCamera.enabled) {
+            if (Input.GetAxisRaw("Horizontal") != 0) {
                 mainCameraPosition += Vector3.right * Input.GetAxisRaw("Horizontal") * scrollSpeed;
             }
 
-            if( Input.GetAxisRaw("Vertical") != 0 ) {
+            if (Input.GetAxisRaw("Vertical") != 0) {
                 mainCameraPosition += Vector3.forward * Input.GetAxisRaw("Vertical") * scrollSpeed;
             }
 
+            TopDownCamera.transform.position = mainCameraPosition;
         }
     }
 
-    private void SelectFish( EntityController obj )
+    private void SelectFish(EntityController obj)
     {
-        if( obj == null || obj == SelectedEntity )
-        {
+        if (obj == null || obj == SelectedEntity) {
             return;
         }
 
-        if( SelectedEntity != null )
-        {
+        if (SelectedEntity != null) {
             ClearSelection(true);
         }
 
@@ -349,16 +330,14 @@ public class SimulationManager : MonoBehaviour
         thirdPersonCameraController.smoothSpeed = SelectedEntity.Genes.Legs.smoothSpeed;
 
         Renderer childRenderers = SelectedEntity.GetComponent<Renderer>();
-        
+
         Material m = childRenderers.material;
 
-        if( SelectedEntity.isAlive() )
-        {
+        if (SelectedEntity.isAlive()) {
             m.color = EntityController.SelectedAliveColor;
             SelectedEntity.EnableEyeLashes();
         }
-        else
-        {
+        else {
             m.color = EntityController.SelectedDeadColor;
         }
 
@@ -370,28 +349,23 @@ public class SimulationManager : MonoBehaviour
         SelectedEntity.AllowRender = true;
     }
 
-    private void HoverSelectable( EntityController obj )
+    private void HoverSelectable(EntityController obj)
     {
-        if( obj == HoveredEntity || obj == SelectedEntity )
-        {
+        if (obj == HoveredEntity || obj == SelectedEntity) {
             return;
         }
 
-        if( obj == null )
-        {
+        if (obj == null) {
             ClearHover();
         }
-        else
-        {
+        else {
             Renderer r = obj.GetComponent<Renderer>();
             Material m = r.material;
 
-            if( obj.isAlive() )
-            {
+            if (obj.isAlive()) {
                 m.color = EntityController.HoverAliveColor;
             }
-            else
-            {
+            else {
                 m.color = EntityController.HoverDeadColor;
             }
 
@@ -407,31 +381,18 @@ public class SimulationManager : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    private void ClearSelection( bool onlyResetColors = false )
+    private void ClearSelection(bool onlyResetColors = false)
     {
-        if( SelectedEntity == null )
-        {
+        if (SelectedEntity == null) {
             return;
         }
 
-        if( !onlyResetColors )
-        {
+        if (!onlyResetColors) {
             thirdPersonCameraController.enabled = false;
             thirdPersonCameraController.Target = null;
         }
 
-        Renderer r = SelectedEntity.GetComponent<Renderer>();
- 
-        Material m = r.material;
-        if( SelectedEntity.isAlive() )
-        {
-            m.color = EntityController.AliveColor;
-        }
-        else
-        {
-            m.color = EntityController.DeadColor;
-        }
-        r.material = m;
+        SelectedEntity.ResetColor();
 
         SelectedEntity.AllowRender = false;
         SelectedEntity.DisableEyeLashes();
@@ -441,42 +402,27 @@ public class SimulationManager : MonoBehaviour
 
     private void ClearHover()
     {
-        if( HoveredEntity == null || SelectedEntity == HoveredEntity )
-        {
+        if (HoveredEntity == null || SelectedEntity == HoveredEntity) {
             return;
         }
 
-        Renderer r = HoveredEntity.GetComponent<Renderer>();
-
-        Material m = r.material;
-        if( HoveredEntity.isAlive() )
-        {
-            m.color = EntityController.AliveColor;
-        }
-        else
-        {
-            m.color = EntityController.DeadColor;
-        }
-
-        r.material = m;
+        HoveredEntity.ResetColor();
 
         HoveredEntity = null;
         EntityInfoRenderer.SelectedEntity = SelectedEntity;
     }
 
-    private bool IsCloseToOthers( Vector3 pos )
+    private bool IsCloseToOthers(Vector3 pos)
     {
-        if( AliveEntities.Count == 0 ) return false;
+        if (AliveEntities.Count == 0) return false;
 
-        foreach( EntityController entity in AliveEntities )
-        {
+        foreach (EntityController entity in AliveEntities) {
             float min_x = entity.transform.position.x;
             float max_x = entity.transform.position.x + entity.transform.localScale.x;
             float min_z = entity.transform.position.z;
             float max_z = entity.transform.position.z + entity.transform.localScale.z;
 
-            if( pos.x > min_x && pos.x < max_x && pos.z > min_z && pos.z < max_z )
-            {
+            if (pos.x > min_x && pos.x < max_x && pos.z > min_z && pos.z < max_z) {
                 return true;
             }
         }

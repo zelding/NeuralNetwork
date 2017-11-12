@@ -10,7 +10,7 @@ public class NeuralNetwork
 
     protected readonly bool historyEnabled = false;
 
-    public readonly float PHI = Mathf.Pow(5f,0.5f) * 0.5f + 0.5f;
+    public static readonly float PHI = Mathf.Pow(5f,0.5f) * 0.5f + 0.5f;
 
     public bool isMutated = false;
 

@@ -1,8 +1,9 @@
-﻿﻿using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FoodController : MonoBehaviour {
+public class FoodController : MonoBehaviour
+{
 
     public string ID { get; private set; }
 
@@ -30,7 +31,7 @@ public class FoodController : MonoBehaviour {
 
     public int Nearby;
     public int Close;
-    
+
     Coroutine Bubbling;
 
     [HideInInspector]
@@ -47,8 +48,8 @@ public class FoodController : MonoBehaviour {
         SphereCollider[] stenches = GetComponents<SphereCollider>();
 
         if (stenches.Length > 0) {
-            foreach( SphereCollider s in stenches) {
-                if(s.isTrigger) {
+            foreach (SphereCollider s in stenches) {
+                if (s.isTrigger) {
                     stench = s;
                     break;
                 }
@@ -59,15 +60,15 @@ public class FoodController : MonoBehaviour {
     }
 
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         ID = Random.Range(-10000f, 10000).ToString();
 
         Cycle = 0;
         nearbyFood = 0;
         veryCloseFood = 0;
 
-        if( EnableBubleing )
-        {
+        if (EnableBubleing) {
             Bubbling = StartCoroutine(Buble(Time.fixedDeltaTime));
             stench.radius = StandardMaxRadius / transform.localScale.x;
         }
@@ -81,10 +82,8 @@ public class FoodController : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        if( !enabled )
-        {
-            if( Bubbling != null )
-            {
+        if (!enabled) {
+            if (Bubbling != null) {
                 StopCoroutine(Bubbling);
             }
         }
@@ -93,16 +92,14 @@ public class FoodController : MonoBehaviour {
         }
     }
 
-    void OnTriggerEnter( Collider col )
+    void OnTriggerEnter(Collider col)
     {
         FoodController target = col.GetComponent<FoodController>();
 
-        if ( target != null && target.ID != ID ) 
-        {
+        if (target != null && target.ID != ID) {
             float dst = Vector3.Distance(transform.position, col.transform.position);
 
-            if ( dst > closeRange && dst < MaxRadius)
-            {
+            if (dst > closeRange && dst < MaxRadius) {
                 lastDirection = (col.transform.position - transform.position).normalized;
             }
         }
@@ -110,15 +107,12 @@ public class FoodController : MonoBehaviour {
 
     private void FixedUpdate()
     {
-        if( enabled )
-        {
-            if( Bubbling != null )
-            {
+        if (enabled) {
+            if (Bubbling != null) {
                 Bubbling = StartCoroutine(Buble(Time.fixedDeltaTime));
             }
 
-            if(lastDirection != Vector3.zero ) 
-            {
+            if (lastDirection != Vector3.zero) {
                 body.AddForce(lastDirection * (nearbyFood + 0.01f), ForceMode.Impulse);
                 lastDirection = Vector3.zero;
             }
@@ -136,21 +130,17 @@ public class FoodController : MonoBehaviour {
         veryCloseFood = nearbyFood = 0;
         Collider[] targetsInViewRadius = Physics.OverlapSphere(body.position, MaxRadius, foodMask);
 
-        for( int i = 0; i < targetsInViewRadius.Length; i++ )
-        {
+        for (int i = 0; i < targetsInViewRadius.Length; i++) {
             FoodController target = targetsInViewRadius[i].GetComponent<FoodController>();
 
-            if( target != null && target.ID != ID )
-            {
+            if (target != null && target.ID != ID) {
                 float dstToTarget = Vector3.Distance(body.position, target.transform.position);
 
-                if( dstToTarget >= closeRange )
-                {
+                if (dstToTarget >= closeRange) {
                     nearbyFood++;
                 }
 
-                if( dstToTarget <= veryCloseRange && dstToTarget >= 1 )
-                {
+                if (dstToTarget <= veryCloseRange && dstToTarget >= 1) {
                     veryCloseFood++;
                 }
             }
@@ -160,9 +150,10 @@ public class FoodController : MonoBehaviour {
         veryCloseFood = Mathf.RoundToInt(veryCloseFood * 0.5f);
     }
 
-    IEnumerator Buble(float delay) {
+    IEnumerator Buble(float delay)
+    {
         while (true) {
-            if( Cycle < Frequency ) {
+            if (Cycle < Frequency) {
                 stench.radius = Evaluate(Cycle) * (MaxRadius / transform.localScale.x);
                 Cycle += Time.fixedDeltaTime;
             }
@@ -176,7 +167,8 @@ public class FoodController : MonoBehaviour {
         }
     }
 
-    static float Evaluate(float value){
+    static float Evaluate(float value)
+    {
         float a = 3;
         float b = 2.2f;
 
