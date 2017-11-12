@@ -112,7 +112,7 @@ public class SimulationManager : MonoBehaviour
 
         CreateInitialPopulation();
 
-        Time.timeScale = 1;// NeuralNetwork.PHI;
+        Time.timeScale = NeuralNetwork.PHI;
     }
 
     // Update is called once per frame

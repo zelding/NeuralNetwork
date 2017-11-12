@@ -25,9 +25,9 @@ public class Genes
 
         //struct for data representation ?
 
-        protected float MutateValue( float value, float min = -0.5f, float max = 0.5f )
+        protected float MutateValue( float value, float min = -0.5f, float max = 0.5f, float chance = 1000 )
         {
-            float randomNumber = Random.Range(0f, 1000f);
+            float randomNumber = Random.Range(0f, chance);
 
             if( randomNumber <= 2f ) {
                 value *= -1f;
@@ -95,9 +95,9 @@ public class Genes
         {
             base.Mutate();
 
-            r = MutateValue(r, minValue, maxValue);
-            g = MutateValue(g, minValue, maxValue);
-            b = MutateValue(b, minValue, maxValue);
+            r = MutateValue(r, minValue, maxValue, 30);
+            g = MutateValue(g, minValue, maxValue, 30);
+            b = MutateValue(b, minValue, maxValue, 30);
         }
     }
 
@@ -291,8 +291,7 @@ public class Genes
             Eyes,
             Noze,
             Ears,
-            Brain,
-            Color
+            Brain
         };
     }
 
@@ -310,8 +309,7 @@ public class Genes
             Eyes,
             Noze,
             Ears,
-            Brain,
-            Color
+            Brain
         };
 
         if( !copyOnly ) {
@@ -325,7 +323,11 @@ public class Genes
             c.Mutate();
         }
 
-        isMutated = Legs.isMutated || Eyes.isMutated || Noze.isMutated || Ears.isMutated || Brain.isMutated || Color.isMutated;
+        isMutated = Legs.isMutated || Eyes.isMutated || Noze.isMutated || Ears.isMutated || Brain.isMutated;
+
+        if ( isMutated ) {
+            Color.Mutate();
+        }
     }
 
 }

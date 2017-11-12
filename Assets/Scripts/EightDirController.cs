@@ -40,7 +40,7 @@ public class EightDirController {
 
     public void HandleInput(float x, float y, float t)
     {
-        if (moveBuffer.Count >= 5) {
+        if (moveBuffer.Count >= 5  || (moveBuffer.Count > 1 && moveBuffer[moveBuffer.Count - 1] == moveBuffer[moveBuffer.Count - 2])) {
 
             Vector3 inputDirection = calcAvg(moveBuffer).normalized;
 
