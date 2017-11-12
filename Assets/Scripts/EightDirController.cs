@@ -40,7 +40,17 @@ public class EightDirController {
 
     public void HandleInput(float x, float y, float t)
     {
-        if (moveBuffer.Count >= 5  || (moveBuffer.Count > 1 && moveBuffer[moveBuffer.Count - 1] == moveBuffer[moveBuffer.Count - 2])) {
+        Vector3 inputDirection = new Vector3(x, 0, y).normalized;
+
+        float inputMagnitude = inputDirection.magnitude;
+        smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, inputMagnitude, ref smoothMoveVelocity, smoothMoveTime);
+
+        float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg;
+        angle = Mathf.LerpAngle(angle, targetAngle, Time.deltaTime * turnSpeed * inputMagnitude);
+
+        currentVelocity = entity.transform.forward * velocity * smoothInputMagnitude * t;
+        /*
+        if (moveBuffer.Count >= 3  || (moveBuffer.Count > 1 && moveBuffer[moveBuffer.Count - 1] == moveBuffer[moveBuffer.Count - 2])) {
 
             Vector3 inputDirection = calcAvg(moveBuffer).normalized;
 
@@ -58,7 +68,7 @@ public class EightDirController {
             Vector3 inputDirection = new Vector3(x, 0, y).normalized;
 
             moveBuffer.Add(inputDirection);
-        }
+        }*/
     }
 
     public void Move()
