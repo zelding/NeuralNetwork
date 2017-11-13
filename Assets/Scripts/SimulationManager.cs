@@ -52,6 +52,7 @@ public class SimulationManager : MonoBehaviour
     public List<EntityController> AliveEntities;
     public List<EntityController> DeadEntities;
     public List<FoodController> Food;
+    public SortedDictionary<string, FoodController> FoodList;
 
     public List<EntityState> WorstEntities;
     public List<EntityState> BestEntities;
@@ -70,6 +71,7 @@ public class SimulationManager : MonoBehaviour
 
     public void ReportFoodEaten(FoodController food)
     {
+        FoodList.Remove(food.ID);
         Food.Remove(food);
         Destroy(food.gameObject);
     }
@@ -107,12 +109,14 @@ public class SimulationManager : MonoBehaviour
         BestEntities = new List<EntityState>();
         MiddleEntities = new List<EntityState>();
 
+        FoodList = new SortedDictionary<string, FoodController>();
+
         thirdPersonCameraController = GetComponent<ThirdPersonCameraController>();
         thirdPersonCameraController.enabled = false;
 
         CreateInitialPopulation();
 
-        Time.timeScale = NeuralNetwork.PHI;
+        //Time.timeScale = NeuralNetwork.PHI;
     }
 
     // Update is called once per frame
@@ -151,6 +155,7 @@ public class SimulationManager : MonoBehaviour
         txt_generation.text = "Generation: " + Generation;
         txt_food.text = "Food: " + FindObjectsOfType<FoodController>().Length +
                 " / " + Food.Count +
+                " / " + FoodList.Count + 
                 " / " + startingfood;
 
         if (SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null) {
@@ -242,7 +247,12 @@ public class SimulationManager : MonoBehaviour
 
                 Instantiate(foodBody, startPosition, Quaternion.identity, foodList.transform);
 
-                Food.Add(foodBody.GetComponent<FoodController>());
+                FoodController foodController = foodBody.GetComponent<FoodController>();
+
+                Food.Add(foodController);
+                if ( !FoodList.ContainsKey(foodController.ID) ) {
+                    FoodList.Add(foodController.ID, foodController);
+                }
             }
         }
     }

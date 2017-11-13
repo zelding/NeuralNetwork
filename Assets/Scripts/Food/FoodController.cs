@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class FoodController : MonoBehaviour
 {
-
     public string ID { get; private set; }
 
     public const float massFactor = 0.67f;

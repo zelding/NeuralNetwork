@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
-    public const int NumberOfInputs = 4;
+    public const int NumberOfInputs = 5;
     public const int NumberOfOutputs = 2;
 
     public static Color AliveColor;
@@ -226,7 +226,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 eyeInput,
                 noseInput,
                 EarsData,
-                new Vector3(((Energy / MaxEnergy) - 0.5f) * 2, 0, 0)
+                new Vector3(((Energy / MaxEnergy) - 0.5f) * 2, 0, 0),
+                Output[0]
             };
 
             Output = Brain.FeedForward(Input);
