@@ -4,8 +4,9 @@ using UnityEngine;
 
 public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
-    public const int NumberOfInputs = 5;
+    public const int NumberOfInputs = 4;
     public const int NumberOfOutputs = 2;
+    public const int NumberOfMemoryNeurons = 1;
 
     public static Color AliveColor;
     public static Color DeadColor = new Color(0.2f, 0.2f, 0.2f, 0.7f);
@@ -126,6 +127,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         return CurrrentFeedingTimer;
     }
 
+    public void Kill()
+    {
+        Energy = 0;
+    }
+
     // Use this for initialization
     void Start()
     {
@@ -134,18 +140,19 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             List<int> brainStructure = new List<int>();
 
-            brainStructure.Add(NumberOfInputs);
+            brainStructure.Add(NumberOfInputs + NumberOfMemoryNeurons);
 
             foreach (int layerLength in Genes.Brain.neuronsInHiddenLayers) {
                 brainStructure.Add(layerLength);
             }
 
-            brainStructure.Add(NumberOfOutputs);
+            brainStructure.Add(NumberOfOutputs + NumberOfMemoryNeurons);
 
             Brain = new VectorNet(brainStructure.ToArray());
             Legs = new EightDirController(this);
 
-            Name = BaseName = Collections.Names[Random.Range(0, Collections.Names.Count)];
+            BaseName = Collections.Names[Random.Range(0, Collections.Names.Count)];
+            Name = BaseName + " 1.0.0";
         }
 
         Distance = 0f;
@@ -222,12 +229,12 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             Vector3 EarsData = Ears.GetData();
 
-            Input = new Vector3[NumberOfInputs] {
+            Input = new Vector3[NumberOfInputs + NumberOfMemoryNeurons] {
                 eyeInput,
                 noseInput,
                 EarsData,
                 new Vector3(((Energy / MaxEnergy) - 0.5f) * 2, 0, 0),
-                Output[0]
+                Output[ Output.Length - 1]
             };
 
             Output = Brain.FeedForward(Input);
@@ -382,23 +389,36 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 }
             }
 
-            Gizmos.color = Color.cyan;
-
             Vector3 EarsData = Ears.GetData();
+            Vector3 right = Eye.DirFromAngle(45, false);
+            Vector3 frwrd = transform.position + (transform.forward * Genes.Ears.range);
+            Vector3 left = Eye.DirFromAngle(-45, false);
 
             if (EarsData.y > 0) {
-                Vector3 frwrd = transform.position + (transform.forward * Genes.Eyes.range);
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawLine(transform.position, frwrd);
+            }
+            else {
+                Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
                 Gizmos.DrawLine(transform.position, frwrd);
             }
 
             if (EarsData.x > 0) {
-                Vector3 left = Eye.DirFromAngle(-45, false);
-                Gizmos.DrawLine(transform.position, transform.position + left * Genes.Eyes.range);
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawLine(transform.position, transform.position + left * Genes.Ears.range);
+            }
+            else {
+                Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
+                Gizmos.DrawLine(transform.position, transform.position + left * Genes.Ears.range);
             }
 
             if (EarsData.z > 0f) {
-                Vector3 right = Eye.DirFromAngle(45, false);
-                Gizmos.DrawLine(transform.position, transform.position + right * Genes.Eyes.range);
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawLine(transform.position, transform.position + right * Genes.Ears.range);
+            }
+            else {
+                Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
+                Gizmos.DrawLine(transform.position, transform.position + right * Genes.Ears.range);
             }
         }
     }

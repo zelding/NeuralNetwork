@@ -44,7 +44,10 @@ public class SimulationManager : MonoBehaviour
 
     private float spawnBoundary = 430f;
     private bool isRunning = true;
-    public int Generation = 0;
+
+    public int Cycle = 0;
+    public uint minGen = uint.MaxValue;
+    public uint maxGen = 0;
 
     private bool cycleEntities = false;
     private float lastCycle = 0f;
@@ -60,13 +63,31 @@ public class SimulationManager : MonoBehaviour
 
     public void RegisterNewEntity(EntityController entity)
     {
+        if (isRunning)
         AliveEntities.Add(entity);
     }
 
     public void UnRegisterEntity(EntityController entity)
     {
-        AliveEntities.Remove(entity);
-        DeadEntities.Add(entity);
+        if( isRunning ) {
+            var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+
+            do {
+                startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+            } while( IsCloseToOthers(startPosition) );
+
+            GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
+            EntityController fishSoul = fish.GetComponent<EntityController>();
+
+            Vector3 euler = fish.transform.eulerAngles;
+            euler.y = Random.Range(-180f, 180f);
+            fish.transform.eulerAngles = euler;
+
+            fishSoul.InheritFrom(entity);
+
+            AliveEntities.Remove(entity);
+            DeadEntities.Add(entity);
+        }
     }
 
     public void ReportFoodEaten(FoodController food)
@@ -101,7 +122,7 @@ public class SimulationManager : MonoBehaviour
         FollowingCamera.enabled = false;
         currentCamera = TopDownCamera;
 
-        Generation = 1;
+        Cycle = 1;
         AliveEntities = new List<EntityController>();
         DeadEntities = new List<EntityController>();
         Food = new List<FoodController>();
@@ -116,7 +137,7 @@ public class SimulationManager : MonoBehaviour
 
         CreateInitialPopulation();
 
-        //Time.timeScale = NeuralNetwork.PHI;
+        //Time.timeScale = 2;
     }
 
     // Update is called once per frame
@@ -130,20 +151,41 @@ public class SimulationManager : MonoBehaviour
     {
         isRunning = AliveEntities.Count > 0;
 
-        if (!isRunning) {
-            if (DeadEntities.Count > 0) {
-                CreateChildrenEntities();
+        //OR
+        foreach(EntityController e in AliveEntities) {
+            var asd = e.Brain.gen;
 
-                BestEntityInfoRenderer.SelectedEntity = BestEntities[BestEntities.Count - 1];
-                WorstEntityInfoRenderer.SelectedEntity = WorstEntities[WorstEntities.Count - 1];
+            if (asd > maxGen) {
+                maxGen = asd;
+            }
+            else if( asd < minGen ) {
+                minGen = asd;
             }
         }
-        else {
-            if (SelectedEntity == null && EntityInfoRenderer.SelectedEntity != null) {
+
+        if ( minGen >= Cycle && maxGen > Cycle + 4 ) {
+            isRunning = false;
+        }
+        /*else {
+            Debug.Log(minGen + ">=" + Cycle + " && " + maxGen + ">" + (Cycle + 4));
+        }*/
+
+        if (isRunning) {
+            if( SelectedEntity == null && EntityInfoRenderer.SelectedEntity != null ) {
                 EntityInfoRenderer.SelectedEntity = null;
             }
 
             FillMissingFood();
+        }
+        else {
+            if( DeadEntities.Count >= startingFishes ) {
+                CreateChildrenEntities();
+
+                BestEntityInfoRenderer.SelectedEntity  =  BestEntities[  BestEntities.Count - 1 ];
+                WorstEntityInfoRenderer.SelectedEntity = WorstEntities[ WorstEntities.Count - 1 ];
+            }
+
+            isRunning = true;
         }
     }
 
@@ -152,11 +194,11 @@ public class SimulationManager : MonoBehaviour
         txt_pop_size.text = "Population: " + AliveEntities.Count +
                 " / " + DeadEntities.Count +
                 " / " + startingFishes;
-        txt_generation.text = "Generation: " + Generation;
+        txt_generation.text = "Cycle: " + Cycle + ", Generations: " + minGen + " - " + maxGen;
         txt_food.text = "Food: " + FindObjectsOfType<FoodController>().Length +
-                " / " + Food.Count +
-                " / " + FoodList.Count + 
-                " / " + startingfood;
+                " / fc " + Food.Count +
+                " / flc " + FoodList.Count + 
+                " / sf " + startingfood;
 
         if (SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null) {
             EntityInfoRenderer.SelectedEntity = SelectedEntity;
@@ -193,11 +235,16 @@ public class SimulationManager : MonoBehaviour
 
     private void CreateChildrenEntities()
     {
-        Generation++;
+        Cycle++;
+        foreach( EntityController e in AliveEntities ) {
+            e.Kill();
+            DeadEntities.Add(e);
+        }
 
+        AliveEntities.Clear();
         DeadEntities.Sort();
 
-        int count = DeadEntities.Count;
+        int count = Mathf.RoundToInt(Mathf.Min(startingFishes, DeadEntities.Count / 2));
         int middle = (count % 2 == 0) ? count / 2 : (count + 1) / 2;
 
         var nextGeneration = new List<EntityController>();
@@ -231,10 +278,10 @@ public class SimulationManager : MonoBehaviour
         }
 
         DeadEntities.Clear();
-        AliveEntities.Clear();
         AliveEntities = nextGeneration;
 
-        isRunning = true;
+        minGen = uint.MaxValue;
+        maxGen = 0;
     }
 
     private void FillMissingFood()
@@ -284,7 +331,7 @@ public class SimulationManager : MonoBehaviour
         }
 
         if (TopDownCamera.enabled) {
-            if (Input.mouseScrollDelta.magnitude > 0) {
+            if (Input.mouseScrollDelta.magnitude != 0) {
                 mainCameraSize = Input.mouseScrollDelta.y * scrollSpeed;
 
                 if (TopDownCamera.enabled) {

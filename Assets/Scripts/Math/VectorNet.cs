@@ -134,7 +134,7 @@ public class VectorNet : NeuralNetwork
 					value += Vector3.Cross (neurons [i - 1] [k], weights [i - 1] [j] [k]) + biases [i - 1] [j] [k];
 				}
 
-				neurons [i] [j] = value.normalized;
+                neurons[ i ][ j ] = value.normalized;
 			}
 		}
 

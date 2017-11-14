@@ -25,7 +25,7 @@ public class MainCameraStuff : MonoBehaviour {
         if( parent != null )
         {
             txt_pop_size.text = "Population: " + parent.WorstEntities.Count + " / " + parent.AliveEntities.Count;
-            txt_generation.text = "Generation: " + parent.Generation;
+            txt_generation.text = "Generation: " + parent.Cycle;
         }
     }
 }

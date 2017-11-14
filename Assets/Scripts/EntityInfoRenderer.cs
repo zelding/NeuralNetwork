@@ -36,7 +36,7 @@ public class EntityInfoRenderer : MonoBehaviour
                     txt_hunger.text = "Hunger: " + tmp.GetHunger().ToString("0.00");
                 }
             }
-            
+
             txt_entity_name.text  = "Entity name: " + SelectedEntity.GetName();
             txt_entity_name.color = SelectedEntity.GetGenes().Color.GetColor();
 
