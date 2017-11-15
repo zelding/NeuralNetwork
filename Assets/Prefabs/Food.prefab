@@ -106,13 +106,13 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1754053334894224}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc5a4c4c7da1e4545a10100e98685e83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StandardMaxRadius: 35
-  MaxRadius: 75
+  StandardMaxRadius: 10
+  MaxRadius: 10
   closeRange: 8
   veryCloseRange: 5
   foodMask:

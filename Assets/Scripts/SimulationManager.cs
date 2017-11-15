@@ -37,7 +37,7 @@ public class SimulationManager : MonoBehaviour
     public int startingFishes = 50;
     public GameObject fishBody;
     [Range(0, 100)]
-    public int startingfood = 50;
+    public int startingFood = 50;
     public GameObject foodBody;
 
     private ThirdPersonCameraController thirdPersonCameraController;
@@ -61,11 +61,21 @@ public class SimulationManager : MonoBehaviour
     public List<EntityState> BestEntities;
     public List<EntityState> MiddleEntities;
 
-    public void RegisterNewEntity(EntityController entity)
-    {
-        if (isRunning)
-        AliveEntities.Add(entity);
-    }
+	public void RegisterNewEntity(EntityController entity)
+	{
+		if (isRunning)
+			AliveEntities.Add(entity);
+	}
+
+	public void RegisterNewFood(FoodController food)
+	{
+		Food.Add(food);
+		if (!FoodList.ContainsKey (food.ID)) {
+			FoodList.Add (food.ID, food);
+		} else {
+			Debug.Log ("Not added " + food.ID);
+		}
+	}
 
     public void UnRegisterEntity(EntityController entity)
     {
@@ -95,6 +105,8 @@ public class SimulationManager : MonoBehaviour
         FoodList.Remove(food.ID);
         Food.Remove(food);
         Destroy(food.gameObject);
+
+		FillMissingFood();
     }
 
     private void Awake()
@@ -136,6 +148,7 @@ public class SimulationManager : MonoBehaviour
         thirdPersonCameraController.enabled = false;
 
         CreateInitialPopulation();
+		FillMissingFood();
 
         //Time.timeScale = 2;
     }
@@ -150,6 +163,8 @@ public class SimulationManager : MonoBehaviour
     private void LateUpdate()
     {
         isRunning = AliveEntities.Count > 0;
+		minGen = uint.MaxValue;
+		maxGen = 0;
 
         //OR
         foreach(EntityController e in AliveEntities) {
@@ -163,7 +178,7 @@ public class SimulationManager : MonoBehaviour
             }
         }
 
-        if ( minGen >= Cycle && maxGen > Cycle + 4 ) {
+        if ( minGen > Cycle ) {
             isRunning = false;
         }
         /*else {
@@ -174,8 +189,6 @@ public class SimulationManager : MonoBehaviour
             if( SelectedEntity == null && EntityInfoRenderer.SelectedEntity != null ) {
                 EntityInfoRenderer.SelectedEntity = null;
             }
-
-            FillMissingFood();
         }
         else {
             if( DeadEntities.Count >= startingFishes ) {
@@ -191,14 +204,14 @@ public class SimulationManager : MonoBehaviour
 
     private void OnGUI()
     {
-        txt_pop_size.text = "Population: " + AliveEntities.Count +
+		txt_pop_size.text =  (isRunning ? "Y" : "N" ) + " Population: " + AliveEntities.Count +
                 " / " + DeadEntities.Count +
                 " / " + startingFishes;
         txt_generation.text = "Cycle: " + Cycle + ", Generations: " + minGen + " - " + maxGen;
         txt_food.text = "Food: " + FindObjectsOfType<FoodController>().Length +
                 " / fc " + Food.Count +
                 " / flc " + FoodList.Count + 
-                " / sf " + startingfood;
+                " / sf " + startingFood;
 
         if (SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null) {
             EntityInfoRenderer.SelectedEntity = SelectedEntity;
@@ -228,14 +241,13 @@ public class SimulationManager : MonoBehaviour
             fish.transform.eulerAngles = euler;
         }
 
-        FillMissingFood();
-
         isRunning = true;
     }
 
     private void CreateChildrenEntities()
     {
-        Cycle++;
+		Cycle = (int) minGen;
+
         foreach( EntityController e in AliveEntities ) {
             e.Kill();
             DeadEntities.Add(e);
@@ -244,12 +256,13 @@ public class SimulationManager : MonoBehaviour
         AliveEntities.Clear();
         DeadEntities.Sort();
 
-        int count = Mathf.RoundToInt(Mathf.Min(startingFishes, DeadEntities.Count / 2));
-        int middle = (count % 2 == 0) ? count / 2 : (count + 1) / 2;
+		int deadCount = DeadEntities.Count;
+		int count = Mathf.RoundToInt(deadCount - (startingFishes / 2f));
+		int middle = (deadCount % 2 == 0) ? count / 2 : (count + 1) / 2;
 
         var nextGeneration = new List<EntityController>();
 
-        for (int i = middle; i < count; i++) {
+		for (int i = count; i < deadCount; i++) {
             for (int k = 0; k < 2; k++) {
                 var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
@@ -270,7 +283,7 @@ public class SimulationManager : MonoBehaviour
         }
 
         WorstEntities.Add(DeadEntities[0].GetSnapshot());
-        BestEntities.Add(DeadEntities[count - 1].GetSnapshot());
+		BestEntities.Add(DeadEntities[DeadEntities.Count - 1].GetSnapshot());
         MiddleEntities.Add(DeadEntities[middle].GetSnapshot());
 
         foreach (EntityController entity in DeadEntities) {
@@ -286,22 +299,19 @@ public class SimulationManager : MonoBehaviour
 
     private void FillMissingFood()
     {
-        int food = FindObjectsOfType<FoodController>().Length;
+		int food = FoodList.Count;
 
-        if (food < startingfood) {
-            for (int i = 0; i < startingfood - food; i++) {
-                var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+		if (food < startingFood) {
+			for (int i = 0; i < startingFood - food; i++) {
+				var startPosition = new Vector3 (Random.Range (-spawnBoundary, spawnBoundary), 1.5f, Random.Range (-spawnBoundary, spawnBoundary));
 
-                Instantiate(foodBody, startPosition, Quaternion.identity, foodList.transform);
+				Instantiate (foodBody, startPosition, Quaternion.identity, foodList.transform);
+			}
 
-                FoodController foodController = foodBody.GetComponent<FoodController>();
-
-                Food.Add(foodController);
-                if ( !FoodList.ContainsKey(foodController.ID) ) {
-                    FoodList.Add(foodController.ID, foodController);
-                }
-            }
-        }
+			Debug.Log ("created food cuz: " + (startingFood - food));
+		} else {
+			Debug.Log ("not created food cuz: " + startingFood +">"+ food);
+		}
     }
 
     private void DetectMouseEvents()

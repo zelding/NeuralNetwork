@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class FoodController : MonoBehaviour
 {
-    public string ID { get; private set; }
+	public string ID;
 
     public const float massFactor = 0.67f;
 
@@ -42,9 +42,12 @@ public class FoodController : MonoBehaviour
     private int nearbyFood;
     private int veryCloseFood;
 
+	private SimulationManager GOD;
+
     private void Awake()
     {
         SphereCollider[] stenches = GetComponents<SphereCollider>();
+		GOD = FindObjectOfType<SimulationManager>();
 
         if (stenches.Length > 0) {
             foreach (SphereCollider s in stenches) {
@@ -56,13 +59,19 @@ public class FoodController : MonoBehaviour
         }
 
         body = GetComponent<Rigidbody>();
+
+		ID = Random.Range(-10000f, 10000).ToString();
     }
+
+	void OnEnable()
+	{
+		//register myself at GOD
+		GOD.RegisterNewFood(this);
+	}
 
     // Use this for initialization
     void Start()
     {
-        ID = Random.Range(-10000f, 10000).ToString();
-
         Cycle = 0;
         nearbyFood = 0;
         veryCloseFood = 0;
@@ -76,6 +85,8 @@ public class FoodController : MonoBehaviour
         MaxRadius = StandardMaxRadius;
 
         lastDirection = Vector3.zero;
+
+		name = "Food " + ID;
     }
 
     // Update is called once per frame
