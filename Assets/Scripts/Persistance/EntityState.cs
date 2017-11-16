@@ -67,7 +67,7 @@ public class EntityState : EntityInfo
     }
 
     public float GetFittness() {
-        return Age * Consumption;
+        return Age * Consumption + Age;
     }
 
     public float GetTopSpeed() {

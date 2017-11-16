@@ -271,14 +271,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
                 markedAsDead = true;
                 enabled = false;
-            }
 
-            if (Eye.enabled) {
-                Eye.enabled = false;
-            }
+				if (Eye.enabled) {
+					Eye.enabled = false;
+				}
 
-            if (Nose.enabled) {
-                Nose.enabled = false;
+				if (Nose.enabled) {
+					Nose.enabled = false;
+				}
             }
         }
 
@@ -300,6 +300,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     void OnDisable()
     {
         //unregister at GOD
+		AllowRender = false;
         DisableEyeLashes();
         GOD.UnRegisterEntity(this);
     }
@@ -311,7 +312,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 EntityController otherFish = collision.gameObject.GetComponentInParent<EntityController>();
 
                 if (otherFish != null && !otherFish.isAlive() && !otherFish.eaten) {
-                    otherFish.enabled = false;
                     otherFish.eaten = true;
                     GainEnergy(100);
                     Consumption += 2;
@@ -526,7 +526,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public float GetFittness()
     {
-        return GetAge() * GetConsumption();
+		return GetAge() * GetConsumption() + GetAge();
     }
 
     public float GetTopSpeed()

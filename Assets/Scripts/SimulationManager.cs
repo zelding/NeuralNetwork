@@ -48,6 +48,7 @@ public class SimulationManager : MonoBehaviour
 
     private float spawnBoundary = 430f;
     private bool isRunning = true;
+	private bool startNewCycleAsap = false;
 
     public int Cycle = 0;
     public uint minGen = uint.MaxValue;
@@ -84,31 +85,46 @@ public class SimulationManager : MonoBehaviour
         if( isRunning ) {
             int gen = (int) entity.Brain.gen;
 
-            UpdateNameList();
-            EntityNames[ entity.BaseName ]++;
-            CurrentEntityNames[ entity.BaseName ]++;
+			if( !EntityCount.ContainsKey((int) gen) ) {
+				EntityCount[ (int) gen ] = 1;
+			}
 
-            EntityCount[ gen ]--;
+			EntityNames [entity.BaseName]++;
 
-            var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+			EntityController fish = CreateNewFish (entity);
 
-            do {
-                startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-            } while( IsCloseToOthers(startPosition) );
+			AliveEntities.Remove (entity);
+			EntityCount [gen]--;
+			DeadEntities.Add (entity);
 
-            GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
-            EntityController fishSoul = fish.GetComponent<EntityController>();
-
-            Vector3 euler = fish.transform.eulerAngles;
-            euler.y = Random.Range(-180f, 180f);
-            fish.transform.eulerAngles = euler;
-
-            fishSoul.InheritFrom(entity);
-
-            AliveEntities.Remove(entity);
-            DeadEntities.Add(entity);
+			if (gen <= Cycle && (!EntityCount.ContainsKey (gen) || EntityCount [gen] == 0)) {
+				startNewCycleAsap = true;
+			}
         }
     }
+
+	EntityController CreateNewFish(EntityController parent = null) 
+	{
+		var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+
+		do {
+			startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+		} while( IsCloseToOthers(startPosition) );
+
+		GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
+		EntityController fishSoul = fish.GetComponent<EntityController>();
+
+		Vector3 euler = fish.transform.eulerAngles;
+		euler.y = Random.Range(-180f, 180f);
+		fish.transform.eulerAngles = euler;
+
+		if (parent != null) {
+			fishSoul.InheritFrom (parent);
+		}
+
+		return fishSoul;
+	}
+
 
     public void ReportFoodEaten( FoodController food )
     {
@@ -140,6 +156,7 @@ public class SimulationManager : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+		QualitySettings.vSyncCount = 0;
         TopDownCamera.enabled = true;
         mainCameraPosition = TopDownCamera.transform.position;
         mainCameraSize = TopDownCamera.transform.position.y;
@@ -179,8 +196,6 @@ public class SimulationManager : MonoBehaviour
 
     private void LateUpdate()
     {
-        isRunning = AliveEntities.Count > 0;
-
         if( isRunning ) {
             if( SelectedEntity == null && EntityInfoRenderer.SelectedEntity != null ) {
                 EntityInfoRenderer.SelectedEntity = null;
@@ -206,65 +221,58 @@ public class SimulationManager : MonoBehaviour
 
                 EntityCount[ (int) asd ]++;
             }
-
-            if( minGen > Cycle ) {
-                isRunning = false;
-
-                foreach( EntityController e in AliveEntities ) {
-                    e.Kill();
-                    DeadEntities.Add(e);
-                }
-            }
         }
 
-        if( !isRunning ) {
-            if( DeadEntities.Count >= startingFishes ) {
-                CreateChildrenEntities();
+		if ( startNewCycleAsap ) {
+			isRunning = false;
 
-                BestEntityInfoRenderer.SelectedEntity = BestEntities[ BestEntities.Count - 1 ];
-                WorstEntityInfoRenderer.SelectedEntity = WorstEntities[ WorstEntities.Count - 1 ];
-            }
+			if( DeadEntities.Count >= startingFishes ) {
+				CreateChildrenEntities();
 
-            isRunning = true;
-        }
+				BestEntityInfoRenderer.SelectedEntity = BestEntities[ BestEntities.Count - 1 ];
+				WorstEntityInfoRenderer.SelectedEntity = WorstEntities[ WorstEntities.Count - 1 ];
+
+				startNewCycleAsap = false;
+			}
+
+			isRunning = true;
+		}
     }
 
     private void OnGUI()
     {
-        txt_pop_size.text = (isRunning ? "Y" : "N") + " Population: " + AliveEntities.Count +
-                " / " + DeadEntities.Count +
-                " / " + startingFishes;
-        txt_generation.text = "Cycle: " + Cycle + ", Generations: " + minGen + " - " + maxGen;
+		if (isRunning) {
+			txt_pop_size.text = (isRunning ? "Y" : "N") + " Population: " + AliveEntities.Count +
+			" / " + DeadEntities.Count +
+			" / " + startingFishes;
+			txt_generation.text = "Cycle: " + Cycle + ", Generations: " + minGen + " - " + maxGen;
 
-        string g = "";
-        string a = "";
-        string n = "";
-        string c = "";
+			string g = "";
+			string a = "";
+			string n = "";
+			string c = "";
 
-        foreach(int k in EntityCount.Keys ) {
-            g += k + "\n";
-        }
+			foreach (int k in EntityCount.Keys) {
+				g += k + "\n";
+			}
 
-        foreach( int v in EntityCount.Values ) {
-            a += v + "\n";
-        }
+			foreach (int v in EntityCount.Values) {
+				a += v + "\n";
+			}
 
-        foreach( string v in EntityNames.Keys ) {
-            n += v + ": " + EntityNames[v] + "\n";
-        }
+			foreach (string v in EntityNames.Keys) {
+				n += v + ": " + EntityNames [v] + "\n";
+			}
 
-        foreach( string v in CurrentEntityNames.Keys ) {
-            c += v + ": " + CurrentEntityNames[ v ] + "\n";
-        }
+			foreach (string v in CurrentEntityNames.Keys) {
+				c += v + ": " + CurrentEntityNames [v] + "\n";
+			}
 
-        txt_gens.text       = g;
-        txt_alives.text     = a;
-        txt_names.text      = n;
-        txt_curr_names.text = c;
-
-        if( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null ) {
-            EntityInfoRenderer.SelectedEntity = SelectedEntity;
-        }
+			txt_gens.text = g;
+			txt_alives.text = a;
+			txt_names.text = n;
+			txt_curr_names.text = c;
+		}
     }
 
     private void UpdateNameList()
@@ -295,17 +303,7 @@ public class SimulationManager : MonoBehaviour
     private void CreateInitialPopulation()
     {
         for( int i = 0; i < startingFishes; i++ ) {
-            var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-
-            while( IsCloseToOthers(startPosition) ) {
-                startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-            };
-
-            GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
-
-            Vector3 euler = fish.transform.eulerAngles;
-            euler.y = Random.Range(-180f, 180f);
-            fish.transform.eulerAngles = euler;
+			CreateNewFish ();
         }
 
         isRunning = true;
@@ -313,7 +311,11 @@ public class SimulationManager : MonoBehaviour
 
     private void CreateChildrenEntities()
     {
-        Cycle++;
+		Cycle = (int)minGen;
+
+		foreach (EntityController e in AliveEntities) {
+			Destroy (e.gameObject);
+		}
 
         AliveEntities.Clear();
         DeadEntities.Sort();
@@ -324,23 +326,13 @@ public class SimulationManager : MonoBehaviour
 
         var nextGeneration = new List<EntityController>();
 
+		int x = 0;
         for( int i = count; i < deadCount; i++ ) {
             for( int k = 0; k < 2; k++ ) {
-                var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+				EntityController fish = CreateNewFish (DeadEntities[ i ]);
 
-                do {
-                    startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-                } while( IsCloseToOthers(startPosition) );
-
-                GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
-                EntityController fishSoul = fish.GetComponent<EntityController>();
-
-                Vector3 euler = fish.transform.eulerAngles;
-                euler.y = Random.Range(-180f, 180f);
-                fish.transform.eulerAngles = euler;
-
-                fishSoul.InheritFrom(DeadEntities[ i ]);
-                nextGeneration.Add(fishSoul);
+				nextGeneration.Add(fish);
+				x++;
             }
         }
 
@@ -397,18 +389,6 @@ public class SimulationManager : MonoBehaviour
         else {
             ClearHover();
         }
-
-        if( TopDownCamera.enabled ) {
-            if( Input.mouseScrollDelta.magnitude != 0 ) {
-                mainCameraSize = Input.mouseScrollDelta.y * scrollSpeed;
-
-                if( TopDownCamera.enabled ) {
-                    //TopDownCamera.orthographicSize   = mainCameraSize;
-                    TopDownCamera.transform.position += Vector3.up * mainCameraSize;
-                    //TopDownCamera.transform.position = mainCameraPosition;
-                }
-            }
-        }
     }
 
     private void DetectKeyboardEvents()
@@ -434,6 +414,11 @@ public class SimulationManager : MonoBehaviour
             if( Input.GetAxisRaw("Vertical") != 0 ) {
                 mainCameraPosition += Vector3.forward * Input.GetAxisRaw("Vertical") * scrollSpeed;
             }
+
+			if( Input.mouseScrollDelta.y != 0 ) {
+				mainCameraSize = Input.mouseScrollDelta.y * scrollSpeed;
+				mainCameraPosition -= Vector3.up * mainCameraSize;
+			}
 
             TopDownCamera.transform.position = mainCameraPosition;
         }
