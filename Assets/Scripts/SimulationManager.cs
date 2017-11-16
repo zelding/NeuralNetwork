@@ -26,6 +26,10 @@ public class SimulationManager : MonoBehaviour
     public Text txt_pop_size;
     public Text txt_generation;
     public Text txt_food;
+    public Text txt_gens;
+    public Text txt_alives;
+    public Text txt_names;
+    public Text txt_curr_names;
 
     public float scrollSpeed;
 
@@ -49,8 +53,9 @@ public class SimulationManager : MonoBehaviour
     public uint minGen = uint.MaxValue;
     public uint maxGen = 0;
 
-    private bool cycleEntities = false;
-    private float lastCycle = 0f;
+    public SortedDictionary<int, int> EntityCount;
+    public SortedDictionary<string, int> EntityNames;
+    public SortedDictionary<string, int> CurrentEntityNames;
 
     public List<EntityController> AliveEntities;
     public List<EntityController> DeadEntities;
@@ -61,25 +66,30 @@ public class SimulationManager : MonoBehaviour
     public List<EntityState> BestEntities;
     public List<EntityState> MiddleEntities;
 
-	public void RegisterNewEntity(EntityController entity)
-	{
-		if (isRunning)
-			AliveEntities.Add(entity);
-	}
-
-	public void RegisterNewFood(FoodController food)
-	{
-		Food.Add(food);
-		if (!FoodList.ContainsKey (food.ID)) {
-			FoodList.Add (food.ID, food);
-		} else {
-			Debug.Log ("Not added " + food.ID);
-		}
-	}
-
-    public void UnRegisterEntity(EntityController entity)
+    public void RegisterNewEntity( EntityController entity )
     {
         if( isRunning ) {
+            AliveEntities.Add(entity);
+        }
+    }
+
+    public void RegisterNewFood( FoodController food )
+    {
+        Food.Add(food);
+        FoodList.Add(food.ID, food);
+    }
+
+    public void UnRegisterEntity( EntityController entity )
+    {
+        if( isRunning ) {
+            int gen = (int) entity.Brain.gen;
+
+            UpdateNameList();
+            EntityNames[ entity.BaseName ]++;
+            CurrentEntityNames[ entity.BaseName ]++;
+
+            EntityCount[ gen ]--;
+
             var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
             do {
@@ -100,28 +110,31 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
-    public void ReportFoodEaten(FoodController food)
+    public void ReportFoodEaten( FoodController food )
     {
         FoodList.Remove(food.ID);
         Food.Remove(food);
         Destroy(food.gameObject);
 
-		FillMissingFood();
+        FillMissingFood();
     }
 
     private void Awake()
     {
         EntityInfoRenderer[] rr = FindObjectsOfType<EntityInfoRenderer>();
 
-        if (rr.Length > 2) {
-            BestEntityInfoRenderer = rr[0];
-            EntityInfoRenderer = rr[1];
-            WorstEntityInfoRenderer = rr[2];
+        if( rr.Length > 2 ) {
+            BestEntityInfoRenderer = rr[ 0 ];
+            EntityInfoRenderer = rr[ 1 ];
+            WorstEntityInfoRenderer = rr[ 2 ];
         }
         else {
-            BestEntityInfoRenderer = rr[0];
-            EntityInfoRenderer = rr[rr.Length - 1];
+            BestEntityInfoRenderer = rr[ 0 ];
+            EntityInfoRenderer = rr[ rr.Length - 1 ];
         }
+
+        EntityNames = new SortedDictionary<string, int>();
+        CurrentEntityNames = new SortedDictionary<string, int>();
     }
 
     // Use this for initialization
@@ -148,7 +161,9 @@ public class SimulationManager : MonoBehaviour
         thirdPersonCameraController.enabled = false;
 
         CreateInitialPopulation();
-		FillMissingFood();
+        FillMissingFood();
+
+        EntityCount = new SortedDictionary<int, int>();
 
         //Time.timeScale = 2;
     }
@@ -158,43 +173,55 @@ public class SimulationManager : MonoBehaviour
     {
         DetectMouseEvents();
         DetectKeyboardEvents();
+
+        UpdateNameList();
     }
 
     private void LateUpdate()
     {
         isRunning = AliveEntities.Count > 0;
-		minGen = uint.MaxValue;
-		maxGen = 0;
 
-        //OR
-        foreach(EntityController e in AliveEntities) {
-            var asd = e.Brain.gen;
-
-            if (asd > maxGen) {
-                maxGen = asd;
-            }
-            else if( asd < minGen ) {
-                minGen = asd;
-            }
-        }
-
-        if ( minGen > Cycle ) {
-            isRunning = false;
-        }
-        /*else {
-            Debug.Log(minGen + ">=" + Cycle + " && " + maxGen + ">" + (Cycle + 4));
-        }*/
-
-        if (isRunning) {
+        if( isRunning ) {
             if( SelectedEntity == null && EntityInfoRenderer.SelectedEntity != null ) {
                 EntityInfoRenderer.SelectedEntity = null;
             }
+
+            minGen = uint.MaxValue;
+            maxGen = 0;
+            EntityCount = new SortedDictionary<int, int>();
+
+            foreach( EntityController e in AliveEntities ) {
+                var asd = e.Brain.gen;
+
+                if( asd > maxGen ) {
+                    maxGen = asd;
+                }
+                else if( asd < minGen ) {
+                    minGen = asd;
+                }
+
+                if( !EntityCount.ContainsKey((int) asd) ) {
+                    EntityCount[ (int) asd ] = 0;
+                }
+
+                EntityCount[ (int) asd ]++;
+            }
+
+            if( minGen > Cycle ) {
+                isRunning = false;
+
+                foreach( EntityController e in AliveEntities ) {
+                    e.Kill();
+                    DeadEntities.Add(e);
+                }
+            }
         }
-        else {
+
+        if( !isRunning ) {
             if( DeadEntities.Count >= startingFishes ) {
                 CreateChildrenEntities();
 
-                BestEntityInfoRenderer.SelectedEntity  =  BestEntities[  BestEntities.Count - 1 ];
+                BestEntityInfoRenderer.SelectedEntity = BestEntities[ BestEntities.Count - 1 ];
                 WorstEntityInfoRenderer.SelectedEntity = WorstEntities[ WorstEntities.Count - 1 ];
             }
 
@@ -204,33 +231,73 @@ public class SimulationManager : MonoBehaviour
 
     private void OnGUI()
     {
-		txt_pop_size.text =  (isRunning ? "Y" : "N" ) + " Population: " + AliveEntities.Count +
+        txt_pop_size.text = (isRunning ? "Y" : "N") + " Population: " + AliveEntities.Count +
                 " / " + DeadEntities.Count +
                 " / " + startingFishes;
         txt_generation.text = "Cycle: " + Cycle + ", Generations: " + minGen + " - " + maxGen;
-        txt_food.text = "Food: " + FindObjectsOfType<FoodController>().Length +
-                " / fc " + Food.Count +
-                " / flc " + FoodList.Count + 
-                " / sf " + startingFood;
 
-        if (SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null) {
+        string g = "";
+        string a = "";
+        string n = "";
+        string c = "";
+
+        foreach(int k in EntityCount.Keys ) {
+            g += k + "\n";
+        }
+
+        foreach( int v in EntityCount.Values ) {
+            a += v + "\n";
+        }
+
+        foreach( string v in EntityNames.Keys ) {
+            n += v + ": " + EntityNames[v] + "\n";
+        }
+
+        foreach( string v in CurrentEntityNames.Keys ) {
+            c += v + ": " + CurrentEntityNames[ v ] + "\n";
+        }
+
+        txt_gens.text       = g;
+        txt_alives.text     = a;
+        txt_names.text      = n;
+        txt_curr_names.text = c;
+
+        if( SelectedEntity != null && EntityInfoRenderer.SelectedEntity == null ) {
             EntityInfoRenderer.SelectedEntity = SelectedEntity;
         }
+    }
 
-        if (cycleEntities && lastCycle > 5f) {
-            lastCycle = 0;
+    private void UpdateNameList()
+    {
+        if ( EntityNames == null ) {
+            EntityNames = new SortedDictionary<string, int>();
         }
-        else {
-            lastCycle += Time.smoothDeltaTime;
+
+        foreach( string s in CurrentEntityNames.Keys ){
+            CurrentEntityNames[ s ] = 0;
+        }
+
+        if ( AliveEntities.Count > 0 ) {
+            foreach (EntityController entity in AliveEntities) {
+                if( !EntityNames.ContainsKey(entity.BaseName) ) {
+                    EntityNames.Add(entity.BaseName, 1);
+                }
+
+                if( !CurrentEntityNames.ContainsKey(entity.BaseName) ) {
+                    CurrentEntityNames.Add(entity.BaseName, 0);
+                }
+
+                CurrentEntityNames[ entity.BaseName ]++;
+            }
         }
     }
 
     private void CreateInitialPopulation()
     {
-        for (int i = 0; i < startingFishes; i++) {
+        for( int i = 0; i < startingFishes; i++ ) {
             var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
-            while (IsCloseToOthers(startPosition)) {
+            while( IsCloseToOthers(startPosition) ) {
                 startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
             };
 
@@ -246,29 +313,24 @@ public class SimulationManager : MonoBehaviour
 
     private void CreateChildrenEntities()
     {
-		Cycle = (int) minGen;
-
-        foreach( EntityController e in AliveEntities ) {
-            e.Kill();
-            DeadEntities.Add(e);
-        }
+        Cycle++;
 
         AliveEntities.Clear();
         DeadEntities.Sort();
 
-		int deadCount = DeadEntities.Count;
-		int count = Mathf.RoundToInt(deadCount - (startingFishes / 2f));
-		int middle = (deadCount % 2 == 0) ? count / 2 : (count + 1) / 2;
+        int deadCount = DeadEntities.Count;
+        int count = Mathf.RoundToInt(deadCount - (startingFishes / 2f));
+        int middle = (deadCount % 2 == 0) ? count / 2 : (count + 1) / 2;
 
         var nextGeneration = new List<EntityController>();
 
-		for (int i = count; i < deadCount; i++) {
-            for (int k = 0; k < 2; k++) {
+        for( int i = count; i < deadCount; i++ ) {
+            for( int k = 0; k < 2; k++ ) {
                 var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
                 do {
                     startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
-                } while (IsCloseToOthers(startPosition));
+                } while( IsCloseToOthers(startPosition) );
 
                 GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
                 EntityController fishSoul = fish.GetComponent<EntityController>();
@@ -277,16 +339,16 @@ public class SimulationManager : MonoBehaviour
                 euler.y = Random.Range(-180f, 180f);
                 fish.transform.eulerAngles = euler;
 
-                fishSoul.InheritFrom(DeadEntities[i]);
+                fishSoul.InheritFrom(DeadEntities[ i ]);
                 nextGeneration.Add(fishSoul);
             }
         }
 
-        WorstEntities.Add(DeadEntities[0].GetSnapshot());
-		BestEntities.Add(DeadEntities[DeadEntities.Count - 1].GetSnapshot());
-        MiddleEntities.Add(DeadEntities[middle].GetSnapshot());
+        WorstEntities.Add(DeadEntities[ 0 ].GetSnapshot());
+        BestEntities.Add(DeadEntities[ DeadEntities.Count - 1 ].GetSnapshot());
+        MiddleEntities.Add(DeadEntities[ middle ].GetSnapshot());
 
-        foreach (EntityController entity in DeadEntities) {
+        foreach( EntityController entity in DeadEntities ) {
             Destroy(entity.gameObject);
         }
 
@@ -299,19 +361,15 @@ public class SimulationManager : MonoBehaviour
 
     private void FillMissingFood()
     {
-		int food = FoodList.Count;
+        int food = FoodList.Count;
 
-		if (food < startingFood) {
-			for (int i = 0; i < startingFood - food; i++) {
-				var startPosition = new Vector3 (Random.Range (-spawnBoundary, spawnBoundary), 1.5f, Random.Range (-spawnBoundary, spawnBoundary));
+        if( food < startingFood ) {
+            for( int i = 0; i < startingFood - food; i++ ) {
+                var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
 
-				Instantiate (foodBody, startPosition, Quaternion.identity, foodList.transform);
-			}
-
-			Debug.Log ("created food cuz: " + (startingFood - food));
-		} else {
-			Debug.Log ("not created food cuz: " + startingFood +">"+ food);
-		}
+                Instantiate(foodBody, startPosition, Quaternion.identity, foodList.transform);
+            }
+        }
     }
 
     private void DetectMouseEvents()
@@ -319,13 +377,13 @@ public class SimulationManager : MonoBehaviour
         Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, EntityLayer)) {
+        if( Physics.Raycast(ray, out hit, EntityLayer) ) {
             GameObject HoveredGameObject = hit.transform.gameObject;
 
             EntityController foundFish = HoveredGameObject.GetComponent<EntityController>();
 
-            if (foundFish != null) {
-                if (Input.GetMouseButtonDown(0)) {
+            if( foundFish != null ) {
+                if( Input.GetMouseButtonDown(0) ) {
                     SelectFish(foundFish);
                 }
                 else {
@@ -340,11 +398,11 @@ public class SimulationManager : MonoBehaviour
             ClearHover();
         }
 
-        if (TopDownCamera.enabled) {
-            if (Input.mouseScrollDelta.magnitude != 0) {
+        if( TopDownCamera.enabled ) {
+            if( Input.mouseScrollDelta.magnitude != 0 ) {
                 mainCameraSize = Input.mouseScrollDelta.y * scrollSpeed;
 
-                if (TopDownCamera.enabled) {
+                if( TopDownCamera.enabled ) {
                     //TopDownCamera.orthographicSize   = mainCameraSize;
                     TopDownCamera.transform.position += Vector3.up * mainCameraSize;
                     //TopDownCamera.transform.position = mainCameraPosition;
@@ -355,25 +413,25 @@ public class SimulationManager : MonoBehaviour
 
     private void DetectKeyboardEvents()
     {
-        if (Input.GetKeyDown(KeyCode.F1) || (Input.GetMouseButtonDown(1) && FollowingCamera.enabled)) {
+        if( Input.GetKeyDown(KeyCode.F1) || (Input.GetMouseButtonDown(1) && FollowingCamera.enabled) ) {
             ActivateTopDownCamera();
         }
 
-        if (Input.GetKeyDown(KeyCode.F2) || (Input.GetMouseButtonDown(1) && TopDownCamera.enabled)) {
+        if( Input.GetKeyDown(KeyCode.F2) || (Input.GetMouseButtonDown(1) && TopDownCamera.enabled) ) {
             ActivateFollowerCamera();
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(2)) {
+        if( Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(2) ) {
             ActivateTopDownCamera();
             ClearSelection();
         }
 
-        if (TopDownCamera.enabled) {
-            if (Input.GetAxisRaw("Horizontal") != 0) {
+        if( TopDownCamera.enabled ) {
+            if( Input.GetAxisRaw("Horizontal") != 0 ) {
                 mainCameraPosition += Vector3.right * Input.GetAxisRaw("Horizontal") * scrollSpeed;
             }
 
-            if (Input.GetAxisRaw("Vertical") != 0) {
+            if( Input.GetAxisRaw("Vertical") != 0 ) {
                 mainCameraPosition += Vector3.forward * Input.GetAxisRaw("Vertical") * scrollSpeed;
             }
 
@@ -381,13 +439,13 @@ public class SimulationManager : MonoBehaviour
         }
     }
 
-    private void SelectFish(EntityController obj)
+    private void SelectFish( EntityController obj )
     {
-        if (obj == null || obj == SelectedEntity) {
+        if( obj == null || obj == SelectedEntity ) {
             return;
         }
 
-        if (SelectedEntity != null) {
+        if( SelectedEntity != null ) {
             ClearSelection(true);
         }
 
@@ -400,7 +458,7 @@ public class SimulationManager : MonoBehaviour
 
         Material m = childRenderers.material;
 
-        if (SelectedEntity.isAlive()) {
+        if( SelectedEntity.isAlive() ) {
             m.color = EntityController.SelectedAliveColor;
             SelectedEntity.EnableEyeLashes();
         }
@@ -416,20 +474,20 @@ public class SimulationManager : MonoBehaviour
         SelectedEntity.AllowRender = true;
     }
 
-    private void HoverSelectable(EntityController obj)
+    private void HoverSelectable( EntityController obj )
     {
-        if (obj == HoveredEntity || obj == SelectedEntity) {
+        if( obj == HoveredEntity || obj == SelectedEntity ) {
             return;
         }
 
-        if (obj == null) {
+        if( obj == null ) {
             ClearHover();
         }
         else {
             Renderer r = obj.GetComponent<Renderer>();
             Material m = r.material;
 
-            if (obj.isAlive()) {
+            if( obj.isAlive() ) {
                 m.color = EntityController.HoverAliveColor;
             }
             else {
@@ -448,13 +506,13 @@ public class SimulationManager : MonoBehaviour
     /// <summary>
     /// 
     /// </summary>
-    private void ClearSelection(bool onlyResetColors = false)
+    private void ClearSelection( bool onlyResetColors = false )
     {
-        if (SelectedEntity == null) {
+        if( SelectedEntity == null ) {
             return;
         }
 
-        if (!onlyResetColors) {
+        if( !onlyResetColors ) {
             thirdPersonCameraController.enabled = false;
             thirdPersonCameraController.Target = null;
         }
@@ -469,7 +527,7 @@ public class SimulationManager : MonoBehaviour
 
     private void ClearHover()
     {
-        if (HoveredEntity == null || SelectedEntity == HoveredEntity) {
+        if( HoveredEntity == null || SelectedEntity == HoveredEntity ) {
             return;
         }
 
@@ -479,17 +537,17 @@ public class SimulationManager : MonoBehaviour
         EntityInfoRenderer.SelectedEntity = SelectedEntity;
     }
 
-    private bool IsCloseToOthers(Vector3 pos)
+    private bool IsCloseToOthers( Vector3 pos )
     {
-        if (AliveEntities.Count == 0) return false;
+        if( AliveEntities.Count == 0 ) return false;
 
-        foreach (EntityController entity in AliveEntities) {
+        foreach( EntityController entity in AliveEntities ) {
             float min_x = entity.transform.position.x;
             float max_x = entity.transform.position.x + entity.transform.localScale.x;
             float min_z = entity.transform.position.z;
             float max_z = entity.transform.position.z + entity.transform.localScale.z;
 
-            if (pos.x > min_x && pos.x < max_x && pos.z > min_z && pos.z < max_z) {
+            if( pos.x > min_x && pos.x < max_x && pos.z > min_z && pos.z < max_z ) {
                 return true;
             }
         }
@@ -503,8 +561,6 @@ public class SimulationManager : MonoBehaviour
         FollowingCamera.enabled = false;
         thirdPersonCameraController.enabled = false;
         currentCamera = TopDownCamera;
-
-        cycleEntities = false;
     }
 
     private void ActivateFollowerCamera()
@@ -513,7 +569,5 @@ public class SimulationManager : MonoBehaviour
         FollowingCamera.enabled = true;
         thirdPersonCameraController.enabled = true;
         currentCamera = FollowingCamera;
-
-        cycleEntities = true;
     }
 }

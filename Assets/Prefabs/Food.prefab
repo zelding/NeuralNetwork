@@ -111,15 +111,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc5a4c4c7da1e4545a10100e98685e83, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StandardMaxRadius: 10
-  MaxRadius: 10
-  closeRange: 8
-  veryCloseRange: 5
+  ID: 
+  StandardMaxRadius: 9
+  MaxRadius: 15
+  closeRange: 9
+  veryCloseRange: 6
   foodMask:
     serializedVersion: 2
     m_Bits: 2048
-  EnableBubleing: 0
-  Frequency: 1.147
+  EnableBubleing: 1
+  Frequency: 1
   Nearby: 0
   Close: 0
   stench: {fileID: 0}

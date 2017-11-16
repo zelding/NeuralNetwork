@@ -39,6 +39,12 @@ public class ThirdPersonCameraController : MonoBehaviour
             }
 
             LookAtTarget();
+
+            /*float MouseXDelta = Input.GetAxisRaw("Mouse X");
+            if ( MouseXDelta != 0 ) {
+                float angle = Mathf.SmoothDampAngle(Followingcamera.transform.rotation.eulerAngles.y, Followingcamera.transform.rotation.eulerAngles.y + MouseXDelta * turnSpeed, ref turnSpeed, 0.3f);
+                Followingcamera.transform.rotation = Quaternion.Euler(Followingcamera.transform.rotation.x, angle, 0);
+            }*/
         }
     }
 
