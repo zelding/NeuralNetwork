@@ -29,7 +29,9 @@ public class SimulationManager : MonoBehaviour
     public Text txt_gens;
     public Text txt_alives;
     public Text txt_names;
-    public Text txt_curr_names;
+	public Text txt_curr_names;
+	public Text txt_global_time;
+	public Text txt_cycle_time;
 
     public float scrollSpeed;
 
@@ -49,6 +51,9 @@ public class SimulationManager : MonoBehaviour
     private float spawnBoundary = 430f;
     private bool isRunning = true;
 	private bool startNewCycleAsap = false;
+
+	private float globalTime;
+	private float cycleTime;
 
     public int Cycle = 0;
     public uint minGen = uint.MaxValue;
@@ -192,6 +197,8 @@ public class SimulationManager : MonoBehaviour
         DetectKeyboardEvents();
 
         UpdateNameList();
+
+		cycleTime += Time.unscaledDeltaTime;
     }
 
     private void LateUpdate()
@@ -246,6 +253,19 @@ public class SimulationManager : MonoBehaviour
 			" / " + DeadEntities.Count +
 			" / " + startingFishes;
 			txt_generation.text = "Cycle: " + Cycle + ", Generations: " + minGen + " - " + maxGen;
+			txt_food.text = "Food: " + FoodList.Count + " / " + startingFood;
+
+			int minutes = Mathf.FloorToInt(Time.unscaledTime / 60f);
+			int seconds = Mathf.FloorToInt(Time.unscaledTime - minutes * 60);
+			string niceTime = string.Format("{0:0}:{1:00}", minutes, seconds);
+
+			txt_global_time.text = "All time: " + niceTime;
+
+			minutes = Mathf.FloorToInt(cycleTime / 60f);
+			seconds = Mathf.FloorToInt(cycleTime - minutes * 60);
+			niceTime = string.Format("{0:0}:{1:00}", minutes, seconds);
+
+			txt_cycle_time.text = "Cycle time: " + niceTime;
 
 			string g = "";
 			string a = "";
@@ -349,6 +369,7 @@ public class SimulationManager : MonoBehaviour
 
         minGen = uint.MaxValue;
         maxGen = 0;
+		cycleTime = 0;
     }
 
     private void FillMissingFood()
@@ -408,11 +429,11 @@ public class SimulationManager : MonoBehaviour
 
         if( TopDownCamera.enabled ) {
             if( Input.GetAxisRaw("Horizontal") != 0 ) {
-                mainCameraPosition += Vector3.right * Input.GetAxisRaw("Horizontal") * scrollSpeed;
+                mainCameraPosition -= Vector3.right * Input.GetAxisRaw("Horizontal") * scrollSpeed;
             }
 
             if( Input.GetAxisRaw("Vertical") != 0 ) {
-                mainCameraPosition += Vector3.forward * Input.GetAxisRaw("Vertical") * scrollSpeed;
+                mainCameraPosition -= Vector3.forward * Input.GetAxisRaw("Vertical") * scrollSpeed;
             }
 
 			if( Input.mouseScrollDelta.y != 0 ) {
