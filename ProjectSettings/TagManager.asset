@@ -4,11 +4,9 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Wall
+  - eye
   - Fish
   - Food
-  - eye
-  - GOD
   layers:
   - Default
   - TransparentFX
@@ -18,10 +16,10 @@ TagManager:
   - UI
   - 
   - 
-  - Walls
-  - Obstacles
-  - Entities
-  - Food
+  - 
+  - 
+  - 
+  - 
   - 
   - 
   - 
