@@ -178,6 +178,10 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     // Update is called once per frame
     void Update()
     {
+		if (Mathf.Abs (transform.position.x) > 500 || Mathf.Abs (transform.position.y) > 500 || Mathf.Abs (transform.position.z) > 500) {
+			UseEnergy (Energy);
+		}
+
         if (enabled && (Immortal || Energy > 0)) // marked as dead doesn't matter around here
         {
             Vector3 noseInput = Vector3.zero;
@@ -259,7 +263,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 CurrrentFeedingTimer -= Time.deltaTime;
             }
 
-            Legs.HandleInput(Output[0].x, Output[0].z, Output[0].magnitude);
+            //Legs.HandleInput(Output[0].x, Output[0].z, Output[0].magnitude);
+			Legs.Handle3DMovement(Output[0], Output[1]);
         }
         else {
             if (!markedAsDead) {
@@ -351,7 +356,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 topSpeed = speed;
             }
 
-            Legs.Move();
+            //Legs.Move();
+			Legs.Move3D();
         }
     }
 

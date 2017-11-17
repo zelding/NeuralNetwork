@@ -13,10 +13,14 @@ public class Sonar : MonoBehaviour
 
     Coroutine scanning;
 
+	void Awake()
+	{
+		entity = GetComponentInParent<EntityController>();
+	}
+
     // Use this for initialization
     void Start()
     {
-        entity = GetComponentInParent<EntityController>();
         scanning = StartCoroutine("FindTargetsWithDelay", 0.25f);
     }
 

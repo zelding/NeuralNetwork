@@ -1,4 +1,4 @@
-﻿﻿﻿using UnityEngine;
+﻿﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -34,6 +34,8 @@ public class FieldOfView : MonoBehaviour
 
     void Start()
     {
+		Awake ();
+
         viewMesh = new Mesh();
         viewMesh.name = "View Mesh";
         viewMeshFilter.mesh = viewMesh;

@@ -1,4 +1,4 @@
-﻿﻿﻿using UnityEngine;
+﻿﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -21,7 +21,7 @@ public class EightDirController {
     float smoothMoveTime = .1f;
 
     private float angle;
-    private Quaternion targetRotation;
+	private Quaternion targetRotation = Quaternion.identity;
 
     private List<Vector3> moveBuffer;
 
@@ -71,11 +71,30 @@ public class EightDirController {
         }*/
     }
 
+	public void Handle3DMovement(Vector3 input, Vector3 velocity)
+	{
+		smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, input.magnitude, ref smoothMoveVelocity, smoothMoveTime);
+		currentVelocity = entity.transform.forward * this.velocity * smoothInputMagnitude * velocity.magnitude;
+
+		float RotX = Mathf.Atan2 (input.z, input.y) * Mathf.Rad2Deg;
+		float RotY = Mathf.Atan2 (input.x, input.z) * Mathf.Rad2Deg;
+		float RotZ = Mathf.Atan2 (input.x, input.y) * Mathf.Rad2Deg;
+
+		//targetRotation = Quaternion.FromToRotation (entity.transform.forward, input);
+		targetRotation = Quaternion.Euler(new Vector3(RotX, RotY, RotZ));
+	}
+
     public void Move()
     {
         body.MoveRotation(Quaternion.Euler(Vector3.up * angle));
         body.MovePosition(body.position + currentVelocity * Time.deltaTime);
     }
+
+	public void Move3D()
+	{
+		body.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, turnSpeed));
+		body.MovePosition (body.position + currentVelocity * Time.deltaTime);
+	}
 
     public Vector3 calcAvg(List<Vector3> list)
     {

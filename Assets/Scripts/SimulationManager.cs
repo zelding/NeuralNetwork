@@ -39,10 +39,10 @@ public class SimulationManager : MonoBehaviour
     private Vector3 mainCameraPosition;
     private float mainCameraSize;
 
-    [Range(0, 100)]
+    [Range(0, 500)]
     public int startingFishes = 50;
     public GameObject fishBody;
-    [Range(0, 100)]
+    [Range(0, 1000)]
     public int startingFood = 50;
     public GameObject foodBody;
 
@@ -110,10 +110,10 @@ public class SimulationManager : MonoBehaviour
 
 	EntityController CreateNewFish(EntityController parent = null) 
 	{
-		var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+		var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), Random.Range(0.5f, spawnBoundary), Random.Range(-spawnBoundary, spawnBoundary));
 
 		do {
-			startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+			startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), Random.Range(0.5f, spawnBoundary), Random.Range(-spawnBoundary, spawnBoundary));
 		} while( IsCloseToOthers(startPosition) );
 
 		GameObject fish = Instantiate(fishBody, startPosition, Quaternion.identity, fishList.transform);
@@ -378,7 +378,7 @@ public class SimulationManager : MonoBehaviour
 
         if( food < startingFood ) {
             for( int i = 0; i < startingFood - food; i++ ) {
-                var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), 1.5f, Random.Range(-spawnBoundary, spawnBoundary));
+				var startPosition = new Vector3(Random.Range(-spawnBoundary, spawnBoundary), Random.Range(1.5f, spawnBoundary), Random.Range(-spawnBoundary, spawnBoundary));
 
                 Instantiate(foodBody, startPosition, Quaternion.identity, foodList.transform);
             }
