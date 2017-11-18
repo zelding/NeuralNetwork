@@ -37,6 +37,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     [Header("Hmmmmmm")]
     public bool Immortal = false;
+    public bool CanMove = true;
 
     [Range(500f, 5000f)]
     public float MaxEnergy;
@@ -91,7 +92,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     {
         Brain = new VectorNet(entity.Brain);
         Genes = new Genes(entity.Genes);
-        Legs = new EightDirController(this);
 
         generation = (int)Brain.gen;
         variant = entity.variant;
@@ -149,11 +149,12 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             brainStructure.Add(NumberOfOutputs + NumberOfMemoryNeurons);
 
             Brain = new VectorNet(brainStructure.ToArray());
-            Legs = new EightDirController(this);
 
             BaseName = Collections.Names[Random.Range(0, Collections.Names.Count)];
             Name = BaseName + " 1.0.0";
         }
+
+        Legs = new EightDirController(this);
 
         Distance = 0f;
         Consumption = 0f;
@@ -344,7 +345,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         }
     }
 
-    private void FixedUpdate()
+    void FixedUpdate()
     {
         if (Energy > 0) {
             if (displacement > 0) {
@@ -356,12 +357,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 topSpeed = speed;
             }
 
-            //Legs.Move();
-			Legs.Move3D();
+            if( CanMove ) {
+                //Legs.Move();
+                Legs.Move3D();
+            }
         }
     }
 
-    private void OnDrawGizmos()
+    void OnDrawGizmos()
     {
         if (Energy > 0 && AllowRender) {
             Gizmos.color = Color.white;
@@ -429,6 +432,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         }
     }
 
+    #region utility
+
     public void UseEnergy(float amount)
     {
         if (Immortal) {
@@ -471,6 +476,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         }
         r.material = m;
     }
+
+    #endregion
 
     #region ICopmare
 

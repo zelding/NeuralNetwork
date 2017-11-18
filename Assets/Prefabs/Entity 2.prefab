@@ -391,7 +391,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 768
+    m_Bits: 1024
 --- !u!114 &114328730693821556
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -405,11 +405,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetMask:
     serializedVersion: 2
-    m_Bits: 3072
+    m_Bits: 2816
   obstacleMask:
     serializedVersion: 2
-    m_Bits: 768
-  allowRender: 0
+    m_Bits: 1024
+  allowRender: 1
   Body: {fileID: 4691814901882502}
   viewMeshFilter: {fileID: 33334124953708378}
   visibleTargets: []
@@ -453,7 +453,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   targetMask:
     serializedVersion: 2
-    m_Bits: 2048
+    m_Bits: 2560
   obstacleMask:
     serializedVersion: 2
     m_Bits: 256

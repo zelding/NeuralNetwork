@@ -666,7 +666,7 @@ GameObject:
   - component: {fileID: 214715887}
   - component: {fileID: 214715886}
   - component: {fileID: 214715885}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Wall_2
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1079,10 +1079,10 @@ MonoBehaviour:
   foodList: {fileID: 1456690323}
   EntityLayer:
     serializedVersion: 2
-    m_Bits: 1024
+    m_Bits: 256
   ObstacleLayer:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 1024
   SelectedEntity: {fileID: 0}
   HoveredEntity: {fileID: 0}
   TopDownCamera: {fileID: 488155058}
@@ -1097,9 +1097,9 @@ MonoBehaviour:
   txt_global_time: {fileID: 1688672159}
   txt_cycle_time: {fileID: 112938960}
   scrollSpeed: 10
-  startingFishes: 10
+  startingFishes: 0
   fishBody: {fileID: 1796607261820328, guid: 02b160a223d1b0743a1ec8900d16de90, type: 2}
-  startingFood: 50
+  startingFood: 100
   foodBody: {fileID: 1754053334894224, guid: 62e2cbc9f7d08194bbef9ca2c3d17444, type: 2}
   Cycle: 0
   minGen: 4294967295
@@ -1214,6 +1214,95 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 366016782}
+--- !u!1 &473448222
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 473448223}
+  - component: {fileID: 473448227}
+  - component: {fileID: 473448226}
+  - component: {fileID: 473448225}
+  - component: {fileID: 473448224}
+  m_Layer: 0
+  m_Name: Camera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &473448223
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 473448222}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.591, z: 0.216}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1063894746}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!81 &473448224
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 473448222}
+  m_Enabled: 1
+--- !u!92 &473448225
+Behaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 473448222}
+  m_Enabled: 1
+--- !u!124 &473448226
+Behaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 473448222}
+  m_Enabled: 1
+--- !u!20 &473448227
+Camera:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 473448222}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 90
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+  m_StereoMirrorMode: 0
 --- !u!1 &488155054
 GameObject:
   m_ObjectHideFlags: 0
@@ -1388,7 +1477,7 @@ GameObject:
   - component: {fileID: 546864301}
   - component: {fileID: 546864300}
   - component: {fileID: 546864299}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Wall_4
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1470,7 +1559,7 @@ GameObject:
   - component: {fileID: 645489733}
   - component: {fileID: 645489732}
   - component: {fileID: 645489731}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Wall_1
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -1995,7 +2084,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 908302213}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2030,7 +2119,7 @@ GameObject:
   - component: {fileID: 940688067}
   - component: {fileID: 940688066}
   - component: {fileID: 940688065}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Wall_3
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -2421,6 +2510,106 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1015382747}
+--- !u!1 &1063894741
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1063894746}
+  - component: {fileID: 1063894745}
+  - component: {fileID: 1063894744}
+  - component: {fileID: 1063894743}
+  - component: {fileID: 1063894742}
+  m_Layer: 0
+  m_Name: Capsule
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!54 &1063894742
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1063894741}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 64
+  m_CollisionDetection: 0
+--- !u!23 &1063894743
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1063894741}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_Materials:
+  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!136 &1063894744
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1063894741}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!33 &1063894745
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1063894741}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1063894746
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1063894741}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 20}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 473448223}
+  m_Father: {fileID: 0}
+  m_RootOrder: 13
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &1081224924
 GameObject:
   m_ObjectHideFlags: 0
@@ -3060,7 +3249,7 @@ GameObject:
   - component: {fileID: 1377265316}
   - component: {fileID: 1377265315}
   - component: {fileID: 1377265319}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4666,7 +4855,7 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1887552884}
-  m_LocalRotation: {x: -0.50225335, y: -0.32032073, z: -0.3196851, w: 0.736843}
+  m_LocalRotation: {x: -0.5022534, y: -0.32032076, z: -0.31968513, w: 0.73684305}
   m_LocalPosition: {x: -107, y: 72, z: 309}
   m_LocalScale: {x: 39.30908, y: 121.6842, z: 33.267467}
   m_Children: []

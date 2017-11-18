@@ -89,7 +89,7 @@ public class FieldOfView : MonoBehaviour
 
             Vector3 dirToTarget = (target.position - Body.position).normalized;
 
-            if( Vector3.Angle(Body.forward, dirToTarget) < viewAngle / 2 )
+            if( Vector3.Angle(Body.forward, dirToTarget) < viewAngle / 2 && Vector3.Angle(Body.right, dirToTarget) < viewAngle / 2 )
             {
                 float dstToTarget = Vector3.Distance (Body.position, target.position);
 
@@ -97,7 +97,7 @@ public class FieldOfView : MonoBehaviour
                 {
                     EntityController te = targetsInViewRadius[i].GetComponent<EntityController>();
 
-                    if (te == null || !te.isAlive())
+                    if (te == null)
                     {
                         visibleTargets.Add(target);
                     }

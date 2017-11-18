@@ -38,6 +38,15 @@ public class EightDirController {
         currentVelocity = Vector3.zero;
     }
 
+    public EightDirController( Rigidbody body )
+    {
+        this.body = body;
+
+        moveBuffer = new List<Vector3>();
+
+        currentVelocity = Vector3.zero;
+    }
+
     public void HandleInput(float x, float y, float t)
     {
         Vector3 inputDirection = new Vector3(x, 0, y).normalized;
@@ -48,7 +57,7 @@ public class EightDirController {
         float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg;
         angle = Mathf.LerpAngle(angle, targetAngle, Time.deltaTime * turnSpeed * inputMagnitude);
 
-        currentVelocity = entity.transform.forward * velocity * smoothInputMagnitude * t;
+        currentVelocity = body.transform.forward * velocity * smoothInputMagnitude * t;
         /*
         if (moveBuffer.Count >= 3  || (moveBuffer.Count > 1 && moveBuffer[moveBuffer.Count - 1] == moveBuffer[moveBuffer.Count - 2])) {
 
@@ -74,7 +83,7 @@ public class EightDirController {
 	public void Handle3DMovement(Vector3 input, Vector3 velocity)
 	{
 		smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, input.magnitude, ref smoothMoveVelocity, smoothMoveTime);
-		currentVelocity = entity.transform.forward * this.velocity * smoothInputMagnitude * velocity.magnitude;
+		currentVelocity = body.transform.forward * this.velocity * smoothInputMagnitude * velocity.magnitude;
 
 		float RotX = Mathf.Atan2 (input.z, input.y) * Mathf.Rad2Deg;
 		float RotY = Mathf.Atan2 (input.x, input.z) * Mathf.Rad2Deg;

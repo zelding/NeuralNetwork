@@ -130,6 +130,22 @@ public class SimulationManager : MonoBehaviour
 		return fishSoul;
 	}
 
+    EntityController CreateNewFish( Vector3 pos, EntityController parent = null )
+    {
+        GameObject fish = Instantiate(fishBody, pos, Quaternion.identity, fishList.transform);
+        EntityController fishSoul = fish.GetComponent<EntityController>();
+
+        Vector3 euler = fish.transform.eulerAngles;
+        euler.y = Random.Range(-180f, 180f);
+        fish.transform.eulerAngles = euler;
+
+        if( parent != null ) {
+            fishSoul.InheritFrom(parent);
+        }
+
+        return fishSoul;
+    }
+
 
     public void ReportFoodEaten( FoodController food )
     {
@@ -145,16 +161,19 @@ public class SimulationManager : MonoBehaviour
         EntityInfoRenderer[] rr = FindObjectsOfType<EntityInfoRenderer>();
 
         if( rr.Length > 2 ) {
-            BestEntityInfoRenderer = rr[ 0 ];
-            EntityInfoRenderer = rr[ 1 ];
+            BestEntityInfoRenderer  = rr[ 0 ];
+            EntityInfoRenderer      = rr[ 1 ];
             WorstEntityInfoRenderer = rr[ 2 ];
         }
-        else {
+        else if ( rr.Length == 2) {
             BestEntityInfoRenderer = rr[ 0 ];
-            EntityInfoRenderer = rr[ rr.Length - 1 ];
+            EntityInfoRenderer     = rr[ rr.Length - 1 ];
+        }
+        else {
+            EntityInfoRenderer = rr[ 0 ];
         }
 
-        EntityNames = new SortedDictionary<string, int>();
+        EntityNames        = new SortedDictionary<string, int>();
         CurrentEntityNames = new SortedDictionary<string, int>();
     }
 
@@ -184,6 +203,9 @@ public class SimulationManager : MonoBehaviour
 
         CreateInitialPopulation();
         FillMissingFood();
+
+        EntityController fish = CreateNewFish(Vector3.zero);
+        fish.CanMove = false;
 
         EntityCount = new SortedDictionary<int, int>();
 
