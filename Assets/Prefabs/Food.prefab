@@ -112,14 +112,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ID: 
-  StandardMaxRadius: 26
-  MaxRadius: 36
+  StandardMaxRadius: 3
+  MaxRadius: 30
   closeRange: 9
   veryCloseRange: 6
   foodMask:
     serializedVersion: 2
     m_Bits: 2048
-  EnableBubleing: 1
+  EnableBubleing: 0
   Frequency: 1
   Nearby: 0
   Close: 0

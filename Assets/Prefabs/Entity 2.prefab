@@ -434,7 +434,8 @@ MonoBehaviour:
   variant: 0
   revision: 0
   AllowRender: 0
-  Immortal: 1
+  Immortal: 0
+  CanMove: 1
   MaxEnergy: 500
   FeedingTimer: 10
   NeuStr: '|4|'

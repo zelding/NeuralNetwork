@@ -1097,9 +1097,9 @@ MonoBehaviour:
   txt_global_time: {fileID: 1688672159}
   txt_cycle_time: {fileID: 112938960}
   scrollSpeed: 10
-  startingFishes: 0
+  startingFishes: 30
   fishBody: {fileID: 1796607261820328, guid: 02b160a223d1b0743a1ec8900d16de90, type: 2}
-  startingFood: 100
+  startingFood: 75
   foodBody: {fileID: 1754053334894224, guid: 62e2cbc9f7d08194bbef9ca2c3d17444, type: 2}
   Cycle: 0
   minGen: 4294967295
@@ -1232,7 +1232,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &473448223
 Transform:
   m_ObjectHideFlags: 0
@@ -1284,7 +1284,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 10000
   field of view: 90
   orthographic: 0
   orthographic size: 5
@@ -2522,6 +2522,7 @@ GameObject:
   - component: {fileID: 1063894744}
   - component: {fileID: 1063894743}
   - component: {fileID: 1063894742}
+  - component: {fileID: 1063894747}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -2610,6 +2611,17 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 13
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!114 &1063894747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1063894741}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fccec01e33b237a4180f1999f6a83206, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1081224924
 GameObject:
   m_ObjectHideFlags: 0

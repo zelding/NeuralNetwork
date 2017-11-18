@@ -82,6 +82,10 @@ public class EightDirController {
 
 	public void Handle3DMovement(Vector3 input, Vector3 velocity)
 	{
+        if ( input == Vector3.zero ) {
+            return;
+        }
+
 		smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, input.magnitude, ref smoothMoveVelocity, smoothMoveTime);
 		currentVelocity = body.transform.forward * this.velocity * smoothInputMagnitude * velocity.magnitude;
 
@@ -89,8 +93,8 @@ public class EightDirController {
 		float RotY = Mathf.Atan2 (input.x, input.z) * Mathf.Rad2Deg;
 		float RotZ = Mathf.Atan2 (input.x, input.y) * Mathf.Rad2Deg;
 
-		//targetRotation = Quaternion.FromToRotation (entity.transform.forward, input);
-		targetRotation = Quaternion.Euler(new Vector3(RotX, RotY, RotZ));
+        //targetRotation = Quaternion.FromToRotation (entity.transform.forward, input);
+        targetRotation = Quaternion.Euler(new Vector3(RotX, RotY, RotZ));
 	}
 
     public void Move()
@@ -101,7 +105,7 @@ public class EightDirController {
 
 	public void Move3D()
 	{
-		body.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, turnSpeed));
+		body.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 600f * Time.deltaTime));
 		body.MovePosition (body.position + currentVelocity * Time.deltaTime);
 	}
 
