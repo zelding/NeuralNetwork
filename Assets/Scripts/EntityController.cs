@@ -70,9 +70,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     public Transform lastNoseTartget;
     public Transform lastEyeTarget;
 
-    private int noseTargetIndex;
-    private int eyeTargetIndex;
-
     private SimulationManager GOD;
 
     public void Awake()
@@ -83,9 +80,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         Ears = GetComponentInChildren<Sonar>();
         Bones = GetComponent<Rigidbody>();
         GOD = FindObjectOfType<SimulationManager>();
-
-        noseTargetIndex = 0;
-        eyeTargetIndex = 0;
     }
 
     public void InheritFrom(EntityController entity)
@@ -179,7 +173,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     // Update is called once per frame
     void Update()
     {
-		if (Mathf.Abs (transform.position.x) > 500 || Mathf.Abs (transform.position.y) > 500 || Mathf.Abs (transform.position.z) > 500) {
+		if (Mathf.Abs (transform.position.x) > 1000 || Mathf.Abs (transform.position.y) > 1000 || Mathf.Abs (transform.position.z) > 1000) {
 			UseEnergy (Energy);
 		}
 
@@ -189,37 +183,31 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             Vector3 eyeInput = Vector3.zero;
 
             if (Nose.visibleTargets.Count > 0) {
-                int i = 0;
+                float minSqrDst = float.MaxValue;
                 lastNoseTartget = null;
 
                 foreach (Transform t in Nose.visibleTargets) {
-                    lastNoseTartget = t;
+                    float sqrDst = (transform.position - t.position).sqrMagnitude;
 
-                    if (noseTargetIndex == i++) {
-                        noseTargetIndex++;
-                        break;
+                    if ( sqrDst < minSqrDst) {
+                        lastNoseTartget = t;
+                        minSqrDst = sqrDst;
                     }
                 }
-            }
-            else {
-                noseTargetIndex = 0;
             }
 
             if (Eye.visibleTargets.Count > 0) {
-                int i = 0;
+                float minSqrDst = float.MaxValue;
                 lastEyeTarget = null;
 
                 foreach (Transform t in Eye.visibleTargets) {
-                    lastEyeTarget = t;
+                    float sqrDst = (transform.position - t.position).sqrMagnitude;
 
-                    if (eyeTargetIndex == i++) {
-                        eyeTargetIndex++;
-                        break;
+                    if (sqrDst < minSqrDst) {
+                        lastEyeTarget = t;
+                        minSqrDst = sqrDst;
                     }
                 }
-            }
-            else {
-                eyeTargetIndex = 0;
             }
 
             if (lastEyeTarget != null) {

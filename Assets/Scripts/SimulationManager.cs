@@ -255,7 +255,7 @@ public class SimulationManager : MonoBehaviour
 		if ( startNewCycleAsap ) {
 			isRunning = false;
 
-			if( DeadEntities.Count >= startingFishes ) {
+			if( startingFishes > 0 && DeadEntities.Count >= startingFishes ) {
 				CreateChildrenEntities();
 
 				BestEntityInfoRenderer.SelectedEntity = BestEntities[ BestEntities.Count - 1 ];
