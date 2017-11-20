@@ -1,4 +1,4 @@
-﻿﻿using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -89,7 +89,7 @@ public class FieldOfView : MonoBehaviour
 
             Vector3 dirToTarget = (target.position - Body.position).normalized;
 
-            if( Vector3.Angle(Body.forward, dirToTarget) < viewAngle / 2 && Vector3.Angle(Body.right, dirToTarget) < viewAngle / 2 )
+			if( Vector3.Angle(Body.forward, dirToTarget) < viewAngle / 2 && Vector3.Angle(Body.up, dirToTarget) < viewAngle / 2 )
             {
                 float dstToTarget = Vector3.Distance (Body.position, target.position);
 

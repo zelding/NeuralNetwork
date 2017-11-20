@@ -1,4 +1,4 @@
-﻿﻿using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -86,15 +86,20 @@ public class EightDirController {
             return;
         }
 
-		smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, input.magnitude, ref smoothMoveVelocity, smoothMoveTime);
-		currentVelocity = body.transform.forward * this.velocity * smoothInputMagnitude * velocity.magnitude;
+		if ( moveBuffer.Count >= 5 ) {
 
-		float RotX = Mathf.Atan2 (input.z, input.y) * Mathf.Rad2Deg;
-		float RotY = Mathf.Atan2 (input.x, input.z) * Mathf.Rad2Deg;
-		float RotZ = Mathf.Atan2 (input.x, input.y) * Mathf.Rad2Deg;
+			Vector3 inputDirection = calcAvg(moveBuffer).normalized;
 
-        //targetRotation = Quaternion.FromToRotation (entity.transform.forward, input);
-        targetRotation = Quaternion.Euler(new Vector3(RotX, RotY, RotZ));
+			smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, input.magnitude, ref smoothMoveVelocity, smoothMoveTime);
+			currentVelocity = body.transform.forward * this.velocity * smoothInputMagnitude * velocity.magnitude;
+
+			moveBuffer.RemoveAt(0);
+		}
+		else {
+			moveBuffer.Add(input);
+		}
+
+		targetRotation = Quaternion.FromToRotation (body.position.normalized, input);
 	}
 
     public void Move()
@@ -105,7 +110,7 @@ public class EightDirController {
 
 	public void Move3D()
 	{
-		body.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 600f * Time.deltaTime));
+		body.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 6f * Time.deltaTime ));
 		body.MovePosition (body.position + currentVelocity * Time.deltaTime);
 	}
 

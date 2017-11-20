@@ -187,12 +187,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 lastNoseTartget = null;
 
                 foreach (Transform t in Nose.visibleTargets) {
-                    float sqrDst = (transform.position - t.position).sqrMagnitude;
+					if (t != null) {
+						float sqrDst = (transform.position - t.position).sqrMagnitude;
 
-                    if ( sqrDst < minSqrDst) {
-                        lastNoseTartget = t;
-                        minSqrDst = sqrDst;
-                    }
+						if (sqrDst < minSqrDst) {
+							lastNoseTartget = t;
+							minSqrDst = sqrDst;
+						}
+					}
                 }
             }
 
@@ -201,12 +203,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 lastEyeTarget = null;
 
                 foreach (Transform t in Eye.visibleTargets) {
-                    float sqrDst = (transform.position - t.position).sqrMagnitude;
+					if (t != null) {
+						float sqrDst = (transform.position - t.position).sqrMagnitude;
 
-                    if (sqrDst < minSqrDst) {
-                        lastEyeTarget = t;
-                        minSqrDst = sqrDst;
-                    }
+						if (sqrDst < minSqrDst) {
+							lastEyeTarget = t;
+							minSqrDst = sqrDst;
+						}
+					}
                 }
             }
 
@@ -387,35 +391,36 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             }
 
             Vector3 EarsData = Ears.GetData();
-            Vector3 right = Eye.DirFromAngle(45, false);
-            Vector3 frwrd = transform.position + (transform.forward * Genes.Ears.range);
-            Vector3 left = Eye.DirFromAngle(-45, false);
+
+			Vector3 forward     = transform.position + (transform.forward * Genes.Ears.range);
+			Vector3 rightVector = Quaternion.AngleAxis(45, transform.up) * transform.forward;
+			Vector3 leftVector  = Quaternion.AngleAxis(-45, transform.up) * transform.forward;
 
             if (EarsData.y > 0) {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, frwrd);
+				Gizmos.DrawLine(transform.position, forward);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-                Gizmos.DrawLine(transform.position, frwrd);
+				Gizmos.DrawLine(transform.position, forward);
             }
 
             if (EarsData.x > 0) {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, transform.position + left * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + leftVector * Genes.Ears.range);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-                Gizmos.DrawLine(transform.position, transform.position + left * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + leftVector * Genes.Ears.range);
             }
 
             if (EarsData.z > 0f) {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, transform.position + right * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + rightVector * Genes.Ears.range);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-                Gizmos.DrawLine(transform.position, transform.position + right * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + rightVector * Genes.Ears.range);
             }
         }
     }
