@@ -15,7 +15,7 @@ public class EntityState : EntityInfo
     public EntityState( EntityController entity )
     {
         if ( entity.Brain is VectorNet ) {
-            Brain = new VectorNet(entity.Brain, true);
+			Brain = new VectorNet(entity.Brain as VectorNet, true);
         }
         else {
             Brain = new NeuralNetwork(entity.Brain, true);
@@ -67,7 +67,7 @@ public class EntityState : EntityInfo
     }
 
     public float GetFittness() {
-        return Age * Consumption + Age;
+		return Age * Consumption + Age + Distance;
     }
 
     public float GetTopSpeed() {
