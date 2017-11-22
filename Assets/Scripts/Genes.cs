@@ -103,10 +103,10 @@ public class Genes
 
     public class NeuronStructure : Chromosome
     {
-        public const int minHiddenLayers = 1;
-        public const int maxHiddenLayers = 3;
-        public const int minNeuronsInLayers = 8;
-        public const int maxNeuronsInLayers = 32;
+        public const int minHiddenLayers = 2;
+        public const int maxHiddenLayers = 4;
+		public const int minNeuronsInLayers = 20;
+        public const int maxNeuronsInLayers = 40;
 
         internal int hiddenLayers;
         internal int[] neuronsInHiddenLayers;
@@ -156,8 +156,8 @@ public class Genes
 
     public class Movement : Chromosome
     {
-        public const float minSpeed = 5f;
-        public const float maxSpeed = 15f;
+        public const float minSpeed = 15f;
+        public const float maxSpeed = 50f;
 
         public const float minTurnSpeed = 5f;
         public const float maxTurnSpeed = 20f;
@@ -194,8 +194,8 @@ public class Genes
 
     public class Hearing : Chromosome
     {
-        public const float minRange = 30f;
-        public const float maxRange = 180f;
+        public const float minRange = 60f;
+        public const float maxRange = 220f;
 
         internal float range;
 
@@ -242,8 +242,8 @@ public class Genes
 
     public class Sight : Smell
     {
-        public const float minAngle = 30f;
-        public const float maxAngle = 160f;
+        public const float minAngle = 45f;
+        public const float maxAngle = 180f;
 
         internal float angle;
 

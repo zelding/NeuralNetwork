@@ -30,8 +30,11 @@ public class EntityInfoRenderer : MonoBehaviour
                 EntityController tmp = SelectedEntity as EntityController;
 
                 if (tmp != null && tmp.enabled) {
-                    txt_input.text  = "Input: " + JoinArray(Array.ConvertAll(tmp.Input, new Converter<Vector3, string>(V3ToString)));
-                    txt_output.text = "Output: " + JoinArray(Array.ConvertAll(tmp.Output, new Converter<Vector3, string>(V3ToString)));
+                    //txt_input.text  = "Input: " + JoinArray(Array.ConvertAll(tmp.Input, new Converter<Vector3, string>(V3ToString)));
+                    //txt_output.text = "Output: " + JoinArray(Array.ConvertAll(tmp.Output, new Converter<Vector3, string>(V3ToString)));
+					txt_input.text  = "Input: " + JoinArray(Array.ConvertAll(tmp.Input, new Converter<float, string>(FloatToString)));
+					txt_output.text = "Output: " + JoinArray(Array.ConvertAll(tmp.Output, new Converter<float, string>(FloatToString)));
+
                     txt_speed.text  = "Speed: " + tmp.GetSpeed().ToString("0.00");
                     txt_hunger.text = "Hunger: " + tmp.GetHunger().ToString("0.00");
                 }

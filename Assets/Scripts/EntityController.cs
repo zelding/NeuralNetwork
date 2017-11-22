@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
-    public const int NumberOfInputs = 4;
-    public const int NumberOfOutputs = 2;
-    public const int NumberOfMemoryNeurons = 1;
+    public const int NumberOfInputs = 13;
+    public const int NumberOfOutputs = 4;
+    public const int NumberOfMemoryNeurons = 0;
 
     public static Color AliveColor;
     public static Color DeadColor = new Color(0.2f, 0.2f, 0.2f, 0.7f);
@@ -20,7 +20,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public string Name { get; private set; }
     public string BaseName;
-    public VectorNet Brain;
+	//public VectorNet Brain;
+	public NeuralNetwork Brain;
     public Genes Genes;
     public EightDirController Legs;
     public FieldOfView Eye;
@@ -48,8 +49,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     private float Energy;
     private float CurrrentFeedingTimer;
 
-    public Vector3[] Output { get; private set; }
-    public Vector3[] Input { get; set; }
+    //public Vector3[] Output { get; private set; }
+    //public Vector3[] Input { get; set; }
+
+	public float[] Output { get; private set; }
+	public float[] Input { get; set; }
 
     public string NeuStr;
 
@@ -84,7 +88,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public void InheritFrom(EntityController entity)
     {
-        Brain = new VectorNet(entity.Brain);
+		//Brain = new VectorNet(entity.Brain);
+		Brain = new NeuralNetwork(entity.Brain);
         Genes = new Genes(entity.Genes);
 
         generation = (int)Brain.gen;
@@ -142,7 +147,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             brainStructure.Add(NumberOfOutputs + NumberOfMemoryNeurons);
 
-            Brain = new VectorNet(brainStructure.ToArray());
+			//Brain = new VectorNet(brainStructure.ToArray());
+			Brain = new NeuralNetwork(brainStructure.ToArray());
 
             BaseName = Collections.Names[Random.Range(0, Collections.Names.Count)];
             Name = BaseName + " 1.0.0";
@@ -156,7 +162,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         AliveColor = Genes.Color.GetColor();
         ResetColor();
 
-        Output = new Vector3[NumberOfOutputs];
+        Output = new float[NumberOfOutputs];
 
         name = "Fish " + Name;
 
@@ -173,10 +179,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
     // Update is called once per frame
     void Update()
     {
-		if (Mathf.Abs (transform.position.x) > 1000 || Mathf.Abs (transform.position.y) > 1000 || Mathf.Abs (transform.position.z) > 1000) {
-			UseEnergy (Energy);
-		}
-
         if (enabled && (Immortal || Energy > 0)) // marked as dead doesn't matter around here
         {
             Vector3 noseInput = Vector3.zero;
@@ -187,12 +189,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 lastNoseTartget = null;
 
                 foreach (Transform t in Nose.visibleTargets) {
-                    float sqrDst = (transform.position - t.position).sqrMagnitude;
+					if (t != null) {
+						float sqrDst = (transform.position - t.position).sqrMagnitude;
 
-                    if ( sqrDst < minSqrDst) {
-                        lastNoseTartget = t;
-                        minSqrDst = sqrDst;
-                    }
+						if (sqrDst < minSqrDst) {
+							lastNoseTartget = t;
+							minSqrDst = sqrDst;
+						}
+					}
                 }
             }
 
@@ -201,12 +205,14 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 lastEyeTarget = null;
 
                 foreach (Transform t in Eye.visibleTargets) {
-                    float sqrDst = (transform.position - t.position).sqrMagnitude;
+					if (t != null) {
+						float sqrDst = (transform.position - t.position).sqrMagnitude;
 
-                    if (sqrDst < minSqrDst) {
-                        lastEyeTarget = t;
-                        minSqrDst = sqrDst;
-                    }
+						if (sqrDst < minSqrDst) {
+							lastEyeTarget = t;
+							minSqrDst = sqrDst;
+						}
+					}
                 }
             }
 
@@ -222,13 +228,28 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             Vector3 EarsData = Ears.GetData();
 
-            Input = new Vector3[NumberOfInputs + NumberOfMemoryNeurons] {
+            /*Input = new Vector3[NumberOfInputs + NumberOfMemoryNeurons] {
                 eyeInput,
                 noseInput,
                 EarsData,
                 new Vector3(((Energy / MaxEnergy) - 0.5f) * 2, 0, 0),
                 Output[ Output.Length - 1]
-            };
+            };*/
+			Input = new float[NumberOfInputs + NumberOfMemoryNeurons] {
+				eyeInput.x,
+				eyeInput.y,
+				eyeInput.z,
+				noseInput.x,
+				noseInput.y,
+				noseInput.z,
+				EarsData.x,
+				EarsData.y,
+				EarsData.z,
+				((Energy / MaxEnergy) - 0.5f) * 2,
+				Output[0],
+				Output[1],
+				Output[2]
+			};
 
             Output = Brain.FeedForward(Input);
 
@@ -253,7 +274,9 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             }
 
             //Legs.HandleInput(Output[0].x, Output[0].z, Output[0].magnitude);
-			Legs.Handle3DMovement(Output[0], Output[1]);
+			Vector3 movement = new Vector3(Output[0], Output[1], Output[2]);
+
+			Legs.Handle3DMovement(movement);
         }
         else {
             if (!markedAsDead) {
@@ -333,6 +356,15 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         }
     }
 
+    void OnTriggerExit( Collider other )
+    {
+        if( other.tag == "Wall" ) {
+            Consumption /= 2f;
+            UseEnergy(Energy);
+        }
+
+    }
+
     void FixedUpdate()
     {
         if (Energy > 0) {
@@ -387,35 +419,36 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             }
 
             Vector3 EarsData = Ears.GetData();
-            Vector3 right = Eye.DirFromAngle(45, false);
-            Vector3 frwrd = transform.position + (transform.forward * Genes.Ears.range);
-            Vector3 left = Eye.DirFromAngle(-45, false);
+
+			Vector3 forward     = transform.position + (transform.forward * Genes.Ears.range);
+			Vector3 rightVector = Quaternion.AngleAxis(45, transform.up) * transform.forward;
+			Vector3 leftVector  = Quaternion.AngleAxis(-45, transform.up) * transform.forward;
 
             if (EarsData.y > 0) {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, frwrd);
+				Gizmos.DrawLine(transform.position, forward);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-                Gizmos.DrawLine(transform.position, frwrd);
+				Gizmos.DrawLine(transform.position, forward);
             }
 
             if (EarsData.x > 0) {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, transform.position + left * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + leftVector * Genes.Ears.range);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-                Gizmos.DrawLine(transform.position, transform.position + left * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + leftVector * Genes.Ears.range);
             }
 
             if (EarsData.z > 0f) {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, transform.position + right * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + rightVector * Genes.Ears.range);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-                Gizmos.DrawLine(transform.position, transform.position + right * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + rightVector * Genes.Ears.range);
             }
         }
     }
@@ -527,7 +560,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public float GetFittness()
     {
-		return GetAge() * GetConsumption() + GetAge();
+		return GetAge() * GetConsumption() + GetAge() + GetDistance();
     }
 
     public float GetTopSpeed()
