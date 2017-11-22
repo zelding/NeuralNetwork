@@ -55,6 +55,8 @@ public class SimulationManager : MonoBehaviour
 	private float globalTime;
 	private float cycleTime;
 
+	private int selectedEntityIndex = 0;
+
     public int Cycle = 0;
     public uint minGen = uint.MaxValue;
     public uint maxGen = 0;
@@ -96,13 +98,13 @@ public class SimulationManager : MonoBehaviour
 
 			EntityNames [entity.BaseName]++;
 
-			EntityController fish = CreateNewFish (entity);
+			//EntityController fish = CreateNewFish (entity);
 
 			AliveEntities.Remove (entity);
 			EntityCount [gen]--;
 			DeadEntities.Add (entity);
 
-			if (gen <= Cycle && (!EntityCount.ContainsKey (gen) || EntityCount [gen] == 0)) {
+			if (AliveEntities.Count == 0 || gen <= Cycle && (!EntityCount.ContainsKey (gen) || EntityCount [gen] == 0)) {
 				startNewCycleAsap = true;
 			}
         }
@@ -204,7 +206,7 @@ public class SimulationManager : MonoBehaviour
         CreateInitialPopulation();
         FillMissingFood();
 
-        //EntityController fish = CreateNewFish(Vector3.zero);
+		//EntityController fish = CreateNewFish(new Vector3(1400, 0, 0));
         //fish.CanMove = false;
 
         EntityCount = new SortedDictionary<int, int>();
@@ -449,22 +451,25 @@ public class SimulationManager : MonoBehaviour
             ClearSelection();
         }
 
-        /*if( TopDownCamera.enabled ) {
-            if( Input.GetAxisRaw("Horizontal") != 0 ) {
-                mainCameraPosition -= Vector3.right * Input.GetAxisRaw("Horizontal") * scrollSpeed;
-            }
+		if (Input.GetKeyDown (KeyCode.Q)) {
+			selectedEntityIndex++;
 
-            if( Input.GetAxisRaw("Vertical") != 0 ) {
-                mainCameraPosition -= Vector3.forward * Input.GetAxisRaw("Vertical") * scrollSpeed;
-            }
-
-			if( Input.mouseScrollDelta.y != 0 ) {
-				mainCameraSize = Input.mouseScrollDelta.y * scrollSpeed;
-				mainCameraPosition -= Vector3.up * mainCameraSize;
+			if (selectedEntityIndex >= AliveEntities.Count) {
+				selectedEntityIndex = 0;
 			}
 
-            TopDownCamera.transform.position = mainCameraPosition;
-        }*/
+			SelectFish (AliveEntities [selectedEntityIndex]);
+		}
+
+		if (Input.GetKeyDown (KeyCode.E)) {
+			selectedEntityIndex--;
+
+			if (selectedEntityIndex < 0) {
+				selectedEntityIndex = AliveEntities.Count - 1;
+			}
+
+			SelectFish (AliveEntities [selectedEntityIndex]);
+		}
     }
 
     private void SelectFish( EntityController obj )

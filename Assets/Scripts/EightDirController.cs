@@ -18,7 +18,7 @@ public class EightDirController {
     Vector3 currentVelocity;
     float smoothInputMagnitude;
     float smoothMoveVelocity;
-    float smoothMoveTime = .1f;
+    float smoothMoveTime = 2f;
 
     private float angle;
 	private Quaternion targetRotation = Quaternion.identity;
@@ -80,19 +80,19 @@ public class EightDirController {
         }*/
     }
 
-	public void Handle3DMovement(Vector3 input, Vector3 velocity)
+	public void Handle3DMovement(Vector3 input)
 	{
         if ( input == Vector3.zero ) {
             return;
         }
 
-		if ( moveBuffer.Count >= 5 ) {
+		if ( moveBuffer.Count >= 1 ) {
 
 			Vector3 avgInput = calcAvg (moveBuffer);
 			Vector3 inputDirection = avgInput.normalized;
 
 			smoothInputMagnitude = Mathf.SmoothDamp(smoothInputMagnitude, avgInput.magnitude, ref smoothMoveVelocity, smoothMoveTime);
-			currentVelocity = body.transform.forward * this.velocity * velocity.magnitude * smoothInputMagnitude;
+			currentVelocity = body.transform.forward * velocity * smoothInputMagnitude;
 
 			targetRotation = Quaternion.FromToRotation (body.position.normalized, inputDirection);
 
@@ -111,7 +111,7 @@ public class EightDirController {
 
 	public void Move3D()
 	{
-		body.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 6f * Time.deltaTime ));
+		body.MoveRotation(Quaternion.Lerp(body.rotation, targetRotation, 0.5f * Time.deltaTime ));
 		body.MovePosition (body.position + currentVelocity * Time.deltaTime);
 	}
 
@@ -120,6 +120,10 @@ public class EightDirController {
         if (list.Count == 0) {
             return Vector3.zero;
         }
+
+		if (list.Count == 1) {
+			return list [0];
+		}
 
         float x = 0;
         float y = 0;

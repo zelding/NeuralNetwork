@@ -9,6 +9,9 @@ public class MeshInverter : MonoBehaviour
 	void Start ()
 	{
 		var mf = GetComponent<MeshFilter>();
+
+		RemoveExistingColliders (); // we need to re-add the collider to be inverted also
+
 		if (mf != null)
 		{
 			var m = Instantiate(mf.sharedMesh);
@@ -22,6 +25,8 @@ public class MeshInverter : MonoBehaviour
 			Process(m);
 			smr.sharedMesh = m;
 		}
+
+		gameObject.AddComponent<MeshCollider>();
 	}
 
 	private void Process(Mesh m)
@@ -64,5 +69,12 @@ public class MeshInverter : MonoBehaviour
 				normals[n] = -normals[n];
 			m.normals = normals;
 		}
+	}
+
+	private void RemoveExistingColliders()
+	{
+		Collider[] colliders = GetComponents<Collider>();
+		for (int i = 0; i < colliders.Length; i++)
+			DestroyImmediate(colliders[i]);
 	}
 }
