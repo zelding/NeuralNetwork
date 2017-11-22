@@ -8,8 +8,10 @@ public class Sonar : MonoBehaviour
     private EntityController entity;
 
     private float wallInFront;
-    private float wallInLeft;
-    private float wallInRight;
+    private float wallInLeftUp;
+	private float wallInLeftDown;
+	private float wallInRightUp;
+    private float wallInRightDown;
 
     Coroutine scanning;
 
@@ -37,9 +39,9 @@ public class Sonar : MonoBehaviour
         }
     }
 
-    public Vector3 GetData()
+	public float[] GetData()
     {
-        return new Vector3(wallInLeft, wallInFront, wallInRight);
+		return new float[5]{wallInFront, wallInLeftUp, wallInLeftDown, wallInRightUp, wallInRightDown};
     }
 
     IEnumerator FindTargetsWithDelay(float delay)
@@ -53,8 +55,11 @@ public class Sonar : MonoBehaviour
     private void DetectObstaces()
     {
         RaycastHit hit;
-        Vector3 rightVector = Quaternion.AngleAxis(45, transform.up) * transform.forward;
-        Vector3 leftVector = Quaternion.AngleAxis(-45, transform.up) * transform.forward;
+		Vector3 rightUpVector   = Quaternion.AngleAxis(45, transform.up) * Quaternion.AngleAxis(45, transform.right) * transform.forward;
+		Vector3 rightDownVector = Quaternion.AngleAxis(45, transform.up) * Quaternion.AngleAxis(-45, transform.right) * transform.forward;
+
+		Vector3 leftUpVector    = Quaternion.AngleAxis(-45, transform.up) * Quaternion.AngleAxis(45, transform.right)  * transform.forward;
+		Vector3 leftDownVector  = Quaternion.AngleAxis(-45, transform.up) * Quaternion.AngleAxis(-45, transform.right) * transform.forward;
 
         if (Physics.Raycast(transform.position, transform.forward, out hit, entity.Genes.Ears.range, obstacleLayer)) {
             wallInFront = hit.distance;
@@ -63,18 +68,32 @@ public class Sonar : MonoBehaviour
             wallInFront = 0;
         }
 
-        if (Physics.Raycast(transform.position, leftVector, out hit, entity.Genes.Ears.range, obstacleLayer)) {
-            wallInLeft = hit.distance;
+		if (Physics.Raycast(transform.position, leftUpVector, out hit, entity.Genes.Ears.range, obstacleLayer)) {
+            wallInLeftUp = hit.distance;
         }
         else {
-            wallInLeft = 0;
+            wallInLeftUp = 0;
         }
 
-        if (Physics.Raycast(transform.position, rightVector, out hit, entity.Genes.Ears.range, obstacleLayer)) {
-            wallInRight = hit.distance;
+		if (Physics.Raycast(transform.position, leftDownVector, out hit, entity.Genes.Ears.range, obstacleLayer)) {
+			wallInLeftDown = hit.distance;
+		}
+		else {
+			wallInLeftDown = 0;
+		}
+
+		if (Physics.Raycast(transform.position, rightUpVector, out hit, entity.Genes.Ears.range, obstacleLayer)) {
+			wallInRightUp = hit.distance;
+		}
+		else {
+			wallInRightUp = 0;
+		}
+
+		if (Physics.Raycast(transform.position, rightDownVector, out hit, entity.Genes.Ears.range, obstacleLayer)) {
+            wallInRightDown = hit.distance;
         }
         else {
-            wallInRight = 0;
+            wallInRightDown = 0;
         }
     }
 }

@@ -86,7 +86,7 @@ public class EightDirController {
             return;
         }
 
-		if ( moveBuffer.Count >= 5 ) {
+		if ( moveBuffer.Count >= 1 ) {
 
 			Vector3 avgInput = calcAvg (moveBuffer);
 			Vector3 inputDirection = avgInput.normalized;
@@ -111,7 +111,7 @@ public class EightDirController {
 
 	public void Move3D()
 	{
-		body.MoveRotation(Quaternion.Slerp(body.rotation, targetRotation, 6f * Time.deltaTime ));
+		body.MoveRotation(Quaternion.Lerp(body.rotation, targetRotation, 0.5f * Time.deltaTime ));
 		body.MovePosition (body.position + currentVelocity * Time.deltaTime);
 	}
 
@@ -120,6 +120,10 @@ public class EightDirController {
         if (list.Count == 0) {
             return Vector3.zero;
         }
+
+		if (list.Count == 1) {
+			return list [0];
+		}
 
         float x = 0;
         float y = 0;

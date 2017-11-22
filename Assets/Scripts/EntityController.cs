@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class EntityController : MonoBehaviour, System.IComparable<EntityController>, EntityInfo
 {
-    public const int NumberOfInputs = 13;
+    public const int NumberOfInputs = 15;
     public const int NumberOfOutputs = 4;
     public const int NumberOfMemoryNeurons = 0;
 
@@ -157,7 +157,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         Legs = new EightDirController(this);
 
         Distance = 0f;
-        Consumption = 0f;
 
         AliveColor = Genes.Color.GetColor();
         ResetColor();
@@ -167,6 +166,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         name = "Fish " + Name;
 
         Age = 0;
+		Consumption = 0f;
 
         Energy = MaxEnergy;
         CurrrentFeedingTimer = FeedingTimer;
@@ -218,15 +218,15 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             if (lastEyeTarget != null) {
                 eyeInput = (lastEyeTarget.transform.position - Body.transform.position).normalized;
-                eyeInput = transform.InverseTransformDirection(eyeInput);
+                //eyeInput = transform.InverseTransformDirection(eyeInput);
             }
 
             if (lastNoseTartget != null) {
                 noseInput = (lastNoseTartget.transform.position - Body.transform.position).normalized;
-                noseInput = transform.InverseTransformDirection(noseInput);
+                //noseInput = transform.InverseTransformDirection(noseInput);
             }
 
-            Vector3 EarsData = Ears.GetData();
+			float[] EarsData = Ears.GetData();
 
             /*Input = new Vector3[NumberOfInputs + NumberOfMemoryNeurons] {
                 eyeInput,
@@ -242,9 +242,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 				noseInput.x,
 				noseInput.y,
 				noseInput.z,
-				EarsData.x,
-				EarsData.y,
-				EarsData.z,
+				EarsData[0],
+				EarsData[1],
+				EarsData[2],
+				EarsData[3],
+				EarsData[4],
 				((Energy / MaxEnergy) - 0.5f) * 2,
 				Output[0],
 				Output[1],
@@ -275,6 +277,9 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             //Legs.HandleInput(Output[0].x, Output[0].z, Output[0].magnitude);
 			Vector3 movement = new Vector3(Output[0], Output[1], Output[2]);
+			//Vector3 movement = new Vector3(noseInput.x, noseInput.y, noseInput.z);
+
+			//float dst = Vector3.Distance (noseInput, transform.position);
 
 			Legs.Handle3DMovement(movement);
         }
@@ -330,9 +335,9 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
                 if (otherFish != null && !otherFish.isAlive() && !otherFish.eaten) {
                     otherFish.eaten = true;
-                    GainEnergy(100);
+                    GainEnergy(1000);
                     Consumption += 2;
-                    otherFish.transform.position += new Vector3(0, -1000, 0);
+                    otherFish.transform.position += new Vector3(0, -10000, 0);
 
                     CurrrentFeedingTimer += FeedingTimer * 2;
                 }
@@ -342,7 +347,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 FoodController food = collision.gameObject.GetComponentInParent<FoodController>();
 
                 if (food != null) {
-                    GainEnergy(50);
+                    GainEnergy(500);
                     Consumption += 1;
                     GOD.ReportFoodEaten(food);
                     CurrrentFeedingTimer += FeedingTimer;
@@ -354,15 +359,6 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 UseEnergy(Energy);
             }
         }
-    }
-
-    void OnTriggerExit( Collider other )
-    {
-        if( other.tag == "Wall" ) {
-            Consumption /= 2f;
-            UseEnergy(Energy);
-        }
-
     }
 
     void FixedUpdate()
@@ -418,38 +414,62 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
                 }
             }
 
-            Vector3 EarsData = Ears.GetData();
+			float[] EarsData = Ears.GetData();
 
 			Vector3 forward     = transform.position + (transform.forward * Genes.Ears.range);
-			Vector3 rightVector = Quaternion.AngleAxis(45, transform.up) * transform.forward;
-			Vector3 leftVector  = Quaternion.AngleAxis(-45, transform.up) * transform.forward;
+			//Vector3 rightVector = Quaternion.AngleAxis(45, transform.up) * transform.forward;
+			//Vector3 leftVector  = Quaternion.AngleAxis(-45, transform.up) * transform.forward;
 
-            if (EarsData.y > 0) {
+			Vector3 rightUpVector   = Quaternion.AngleAxis(45, transform.up) * Quaternion.AngleAxis(45, transform.right) * transform.forward;
+			Vector3 rightDownVector = Quaternion.AngleAxis(45, transform.up) * Quaternion.AngleAxis(-45, transform.right) * transform.forward;
+
+			Vector3 leftUpVector    = Quaternion.AngleAxis(-45, transform.up) * Quaternion.AngleAxis(45, transform.right)  * transform.forward;
+			Vector3 leftDownVector  = Quaternion.AngleAxis(-45, transform.up) * Quaternion.AngleAxis(-45, transform.right) * transform.forward;
+
+            if (EarsData[0] > 0) {
                 Gizmos.color = Color.cyan;
-				Gizmos.DrawLine(transform.position, forward);
+                Gizmos.DrawLine(transform.position, frwrd);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-				Gizmos.DrawLine(transform.position, forward);
+                Gizmos.DrawLine(transform.position, frwrd);
             }
 
-            if (EarsData.x > 0) {
+            if (EarsData[1] > 0) {
                 Gizmos.color = Color.cyan;
-				Gizmos.DrawLine(transform.position, transform.position + leftVector * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + leftUpVector * Genes.Ears.range);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-				Gizmos.DrawLine(transform.position, transform.position + leftVector * Genes.Ears.range);
+				Gizmos.DrawLine(transform.position, transform.position + leftUpVector * Genes.Ears.range);
             }
 
-            if (EarsData.z > 0f) {
-                Gizmos.color = Color.cyan;
-				Gizmos.DrawLine(transform.position, transform.position + rightVector * Genes.Ears.range);
-            }
-            else {
-                Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-				Gizmos.DrawLine(transform.position, transform.position + rightVector * Genes.Ears.range);
-            }
+			if (EarsData[2] > 0) {
+				Gizmos.color = Color.cyan;
+				Gizmos.DrawLine(transform.position, transform.position + leftDownVector * Genes.Ears.range);
+			}
+			else {
+				Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
+				Gizmos.DrawLine(transform.position, transform.position + leftDownVector * Genes.Ears.range);
+			}
+
+			if (EarsData[3] > 0) {
+				Gizmos.color = Color.cyan;
+				Gizmos.DrawLine(transform.position, transform.position + rightUpVector * Genes.Ears.range);
+			}
+			else {
+				Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
+				Gizmos.DrawLine(transform.position, transform.position + rightUpVector * Genes.Ears.range);
+			}
+
+			if (EarsData[4] > 0) {
+				Gizmos.color = Color.cyan;
+				Gizmos.DrawLine(transform.position, transform.position + rightDownVector * Genes.Ears.range);
+			}
+			else {
+				Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
+				Gizmos.DrawLine(transform.position, transform.position + rightDownVector * Genes.Ears.range);
+			}
         }
     }
 
@@ -560,7 +580,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public float GetFittness()
     {
-		return GetAge() * GetConsumption() + GetAge() + GetDistance();
+		return GetAge() * GetConsumption() + GetAge();
     }
 
     public float GetTopSpeed()
