@@ -66,6 +66,8 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     private bool isInited = false;
 
+    private bool respawn = false;
+
     private Vector3 lastPosition;
     private float displacement;
     private float speed;
@@ -166,7 +168,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
         name = "Fish " + Name;
 
         Age = 0;
-		Consumption = 0f;
+		Consumption = 1f;
 
         Energy = MaxEnergy;
         CurrrentFeedingTimer = FeedingTimer;
@@ -355,8 +357,13 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
             }
 
             if (collision.gameObject.tag == "Wall") {
-                Consumption /= 2f;
-                UseEnergy(Energy);
+                if (Consumption > 0) {
+                    Consumption--;
+                    respawn = true;
+                }
+                else {
+                    UseEnergy(Energy);
+                }
             }
         }
     }
@@ -371,6 +378,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             if (100 > speed && speed > topSpeed) {
                 topSpeed = speed;
+            }
+
+            if ( respawn ) {
+                transform.position = Random.insideUnitSphere * 300f;
+                respawn = false;
             }
 
             if( CanMove ) {
@@ -428,11 +440,11 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
             if (EarsData[0] > 0) {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawLine(transform.position, frwrd);
+				Gizmos.DrawLine(transform.position, forward);
             }
             else {
                 Gizmos.color = new Color(0, 0.34f, 0.34f, 1);
-                Gizmos.DrawLine(transform.position, frwrd);
+				Gizmos.DrawLine(transform.position, forward);
             }
 
             if (EarsData[1] > 0) {
@@ -580,7 +592,7 @@ public class EntityController : MonoBehaviour, System.IComparable<EntityControll
 
     public float GetFittness()
     {
-		return GetAge() * GetConsumption() + GetAge();
+		return GetDistance();
     }
 
     public float GetTopSpeed()
